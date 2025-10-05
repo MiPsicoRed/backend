@@ -1,0 +1,39 @@
+[package]
+name = "mipsicored-backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.6"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+tokio = { version = "1.47.1", features = ["full"] }
+sqlx = { version = "0.8.6", features = [
+    "postgres",
+    "runtime-tokio-rustls",
+    "macros",
+    "uuid",
+    "chrono",
+] }
+dotenvy = "0.15.7"
+tower = "0.5.2"
+anyhow = "1.0.100"
+argon2 = "0.5.3"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = [
+    "env-filter",
+    "fmt",
+    "std",
+    "json",
+] }
+tower-http = { version = "0.6.6", features = ["trace", "cors"] }
+secrecy = { version = "0.10.3", features = ["serde"] }
+uuid = { version = "1.18.1", features = ["serde", "v4"] }
+chrono = { version = "0.4.42", features = ["serde"] }
+thiserror = "2.0.17"
+async-trait = "0.1.89"
+axum-extra = { version = "0.10.3", features = ["cookie", "typed-header"] }
+time = "0.3.44"
+jsonwebtoken = { version = "10.0.0", default-features = false, features = [
+    "aws_lc_rs",
+] }
