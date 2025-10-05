@@ -35,7 +35,7 @@ pub async fn login(
     State(user_use_cases): State<Arc<UserUseCases>>,
     Json(payload): Json<LoginPayload>,
 ) -> AppResult<impl IntoResponse> {
-    info!("Register user called");
+    info!("Login user called");
 
     if !payload.valid() {
         return AppResult::Err(AppError::InvalidPayload);
