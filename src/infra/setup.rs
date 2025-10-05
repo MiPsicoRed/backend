@@ -1,7 +1,7 @@
 use crate::{
     adapters::http::app_state::AppState,
     infra::{argon2_password_hasher, config::AppConfig, jwt_service, postgres_persistence},
-    use_cases::user::UserUseCases,
+    use_cases::{user::UserUseCases, user_token::UserTokenUseCases},
 };
 use std::fs::File;
 use std::sync::Arc;
@@ -20,9 +20,12 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         postgres_arc.clone(),
     );
 
+    let user_token_use_cases = UserTokenUseCases::new(postgres_arc.clone());
+
     Ok(AppState {
         config,
         user_use_cases: Arc::new(user_use_cases),
+        user_token_use_cases: Arc::new(user_token_use_cases),
     })
 }
 
