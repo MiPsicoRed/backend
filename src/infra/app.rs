@@ -21,10 +21,12 @@ pub fn create_app(app_state: AppState) -> Router {
         .allow_headers([CONTENT_TYPE, AUTHORIZATION])
         .allow_credentials(true);
 
+    let jwt_service_ext = app_state.user_use_cases.jwt_service.clone();
+
     Router::new()
         .nest("/api", adapters::http::routes::router())
-        .with_state(app_state.clone())
-        .layer(Extension(app_state))
+        .with_state(app_state)
+        .layer(Extension(jwt_service_ext))
         .layer(cors)
         .layer(
             TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {

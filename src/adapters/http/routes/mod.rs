@@ -1,6 +1,10 @@
 pub mod user;
 
-use crate::{adapters::http::app_state::AppState, app_error::AppError};
+use std::sync::Arc;
+
+use crate::{
+    adapters::http::app_state::AppState, app_error::AppError, use_cases::user::UserJwtService,
+};
 use axum::{Extension, Router, extract::Request, middleware::Next, response::Response};
 
 /// Trait that a Payload should implement in order to be validated (TODO: Can I enforce this)
@@ -10,7 +14,7 @@ trait Validateable {
 
 /// Middleware that extracts the bearer Token from the request and verifies it.
 async fn auth_middleware(
-    Extension(app_state): Extension<AppState>,
+    Extension(user_jwt_service): Extension<Arc<dyn UserJwtService>>,
     request: Request,
     next: Next,
 ) -> Result<Response, AppError> {
@@ -25,9 +29,7 @@ async fn auth_middleware(
         .ok_or_else(|| AppError::Unauthorized("Invalid authorization format".to_string()))?;
 
     // Verify token and get user (TODO: Get claims and insert into request extensions)
-    app_state
-        .user_use_cases
-        .jwt_service
+    user_jwt_service
         .validate_token(token)
         .map_err(|e| AppError::Unauthorized(format!("Invalid token: {}", e)))?;
 
