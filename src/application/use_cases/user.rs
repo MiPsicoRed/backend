@@ -111,6 +111,7 @@ mod test {
                 id: Uuid::new_v4(),
                 username: username.to_string(),
                 email: "testuser@gmail.com".to_string(),
+                verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
             })
@@ -121,6 +122,7 @@ mod test {
                 id: Uuid::new_v4(),
                 username: "testuser".to_string(),
                 email: "testuser@gmail.com".to_string(),
+                verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
             }])

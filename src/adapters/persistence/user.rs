@@ -16,6 +16,7 @@ pub struct UserDb {
     pub id: Uuid,
     pub username: String,
     pub email: String,
+    pub verified: Option<bool>,
     pub password_hash: String,
     pub created_at: Option<NaiveDateTime>,
 }
@@ -26,6 +27,7 @@ impl From<UserDb> for User {
             id: user_db.id,
             username: user_db.username,
             email: user_db.email,
+            verified: user_db.verified,
             password_hash: user_db.password_hash,
             created_at: user_db.created_at,
         }
@@ -54,7 +56,7 @@ impl UserPersistence for PostgresPersistence {
     async fn get_user_by_username(&self, username: &str) -> AppResult<UserDb> {
         sqlx::query_as!(
             UserDb,
-            "SELECT id, username, email, password_hash, created_at 
+            "SELECT id, username, email, verified, password_hash, created_at 
             FROM users 
             WHERE username = $1",
             username
@@ -67,7 +69,7 @@ impl UserPersistence for PostgresPersistence {
     async fn get_all_users(&self) -> AppResult<Vec<UserDb>> {
         sqlx::query_as!(
             UserDb,
-            r#"SELECT id, username, email, ''::text as "password_hash!", created_at
+            r#"SELECT id, username, email, verified, ''::text as "password_hash!", created_at
                 FROM users"#
         )
         .fetch_all(&self.pool)
