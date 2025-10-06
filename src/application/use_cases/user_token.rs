@@ -11,6 +11,7 @@ use crate::{
         utils::verification_token::generate_verification_token,
     },
     app_error::{AppError, AppResult},
+    entities::user_token::UserToken,
 };
 
 #[async_trait]
@@ -59,7 +60,7 @@ impl UserTokenUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserTokenDb> {
+    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserToken> {
         // Flow of this should be:
         // 1 - Check if there is a non expired token already created for this user
         // 2 - If there is a token go to number 4
@@ -109,7 +110,7 @@ impl UserTokenUseCases {
             .await?;
         info!("Saved verification email on the database");
 
-        Ok(token)
+        Ok(token.into())
     }
 
     #[instrument(skip(self))]

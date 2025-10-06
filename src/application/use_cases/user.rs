@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 
-use crate::{adapters::persistence::user::UserDb, app_error::AppResult};
+use crate::{adapters::persistence::user::UserDb, app_error::AppResult, entities::user::User};
 
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
@@ -19,7 +19,7 @@ pub trait UserCredentialsHasher: Send + Sync {
 }
 
 pub trait UserJwtService: Send + Sync {
-    fn generate_token(&self, user: &UserDb) -> AppResult<String>;
+    fn generate_token(&self, user: &User) -> AppResult<String>;
     fn validate_token(&self, token: &str) -> AppResult<()>;
 }
 
@@ -65,20 +65,20 @@ impl UserUseCases {
 
         info!("User login is valid.");
 
-        let jwt_token = self.jwt_service.generate_token(&user)?;
+        let jwt_token = self.jwt_service.generate_token(&user.into())?;
 
         Ok(jwt_token)
     }
 
     #[instrument(skip(self))]
-    pub async fn get_all_users(&self) -> AppResult<Vec<UserDb>> {
+    pub async fn get_all_users(&self) -> AppResult<Vec<User>> {
         info!("Getting all users...");
 
         let users = self.persistence.get_all_users().await?;
 
         info!("Got all users.");
 
-        Ok(users)
+        Ok(users.into_iter().map(Into::into).collect())
     }
 }
 
@@ -150,7 +150,7 @@ mod test {
     struct MockUserJWTService;
 
     impl UserJwtService for MockUserJWTService {
-        fn generate_token(&self, user: &UserDb) -> AppResult<String> {
+        fn generate_token(&self, user: &User) -> AppResult<String> {
             Ok(format!("token_{}", user.username))
         }
 

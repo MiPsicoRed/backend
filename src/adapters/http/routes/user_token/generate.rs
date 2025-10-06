@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
 
 use crate::{
-    adapters::{http::routes::Validateable, persistence::user_token::UserTokenDb},
+    adapters::http::routes::Validateable,
     app_error::{AppError, AppResult},
+    entities::user_token::UserToken,
     use_cases::user_token::UserTokenUseCases,
 };
 
@@ -24,7 +25,7 @@ impl Validateable for GeneratePayload {
 #[derive(Debug, Serialize)]
 pub struct GenerateResponse {
     success: bool,
-    data: UserTokenDb,
+    data: UserToken,
 }
 
 /// Creates a new user based on the submitted credentials.

@@ -4,14 +4,12 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::Serialize;
 use tracing::instrument;
 
-use crate::{
-    adapters::persistence::user::UserDb, app_error::AppResult, use_cases::user::UserUseCases,
-};
+use crate::{app_error::AppResult, entities::user::User, use_cases::user::UserUseCases};
 
 #[derive(Debug, Serialize)]
 pub struct GetAllUsersResponse {
     success: bool,
-    data: Vec<UserDb>, // TODO: Should we return this user struct/the other one why? :C
+    data: Vec<User>,
 }
 
 #[instrument(skip(user_use_cases))]

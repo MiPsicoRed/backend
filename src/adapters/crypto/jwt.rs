@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    adapters::persistence::user::UserDb,
     app_error::{AppError, AppResult},
+    entities::user::User,
     infra::config::AppConfig,
     use_cases::user::UserJwtService,
 };
@@ -28,7 +28,7 @@ impl JwtService {
 }
 
 impl UserJwtService for JwtService {
-    fn generate_token(&self, user: &UserDb) -> AppResult<String> {
+    fn generate_token(&self, user: &User) -> AppResult<String> {
         let token = encode(
             &Header::default(),
             &Claims {
