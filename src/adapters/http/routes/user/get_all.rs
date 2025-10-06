@@ -4,12 +4,14 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::Serialize;
 use tracing::instrument;
 
-use crate::{app_error::AppResult, entities::user::User, use_cases::user::UserUseCases};
+use crate::{
+    adapters::http::routes::user::UserResponse, app_error::AppResult, use_cases::user::UserUseCases,
+};
 
 #[derive(Debug, Serialize)]
 pub struct GetAllUsersResponse {
     success: bool,
-    data: Vec<User>,
+    data: Vec<UserResponse>,
 }
 
 #[instrument(skip(user_use_cases))]
@@ -22,7 +24,7 @@ pub async fn get_all_users(
         StatusCode::OK,
         Json(GetAllUsersResponse {
             success: true,
-            data: users,
+            data: users.into_iter().map(Into::into).collect(),
         }),
     ))
 }

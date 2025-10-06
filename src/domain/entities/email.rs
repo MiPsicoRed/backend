@@ -1,9 +1,8 @@
 use std::fmt::Display;
 
-use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug)]
 pub struct Email {
     pub id: Uuid,
     pub from_mail: String,
@@ -14,7 +13,7 @@ pub struct Email {
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum EmailKind {
     #[default]
     Verification,
