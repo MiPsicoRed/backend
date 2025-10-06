@@ -53,7 +53,7 @@ impl UserPersistence for PostgresPersistence {
         Ok(())
     }
 
-    async fn get_user_by_username(&self, username: &str) -> AppResult<UserDb> {
+    async fn get_user_by_username(&self, username: &str) -> AppResult<User> {
         sqlx::query_as!(
             UserDb,
             "SELECT id, username, email, verified, password_hash, created_at 
@@ -64,9 +64,10 @@ impl UserPersistence for PostgresPersistence {
         .fetch_one(&self.pool)
         .await
         .map_err(AppError::Database)
+        .map(User::from)
     }
 
-    async fn get_all_users(&self) -> AppResult<Vec<UserDb>> {
+    async fn get_all_users(&self) -> AppResult<Vec<User>> {
         sqlx::query_as!(
             UserDb,
             r#"SELECT id, username, email, verified, ''::text as "password_hash!", created_at
@@ -75,5 +76,6 @@ impl UserPersistence for PostgresPersistence {
         .fetch_all(&self.pool)
         .await
         .map_err(AppError::Database)
+        .map(|users| users.into_iter().map(User::from).collect())
     }
 }

@@ -6,11 +6,9 @@ use tracing::{info, instrument};
 use uuid::Uuid;
 
 use crate::{
-    adapters::{
-        persistence::user_token::UserTokenDb,
-        utils::verification_token::generate_verification_token,
-    },
+    adapters::utils::verification_token::generate_verification_token,
     app_error::{AppError, AppResult},
+    entities::user_token::UserToken,
 };
 
 #[async_trait]
@@ -20,9 +18,9 @@ pub trait UserTokenPersistence: Send + Sync {
         user_id: Uuid,
         token: String,
         expires_at: NaiveDateTime,
-    ) -> AppResult<UserTokenDb>;
+    ) -> AppResult<UserToken>;
 
-    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserTokenDb>>;
+    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserToken>>;
 
     async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String>;
 
@@ -59,7 +57,7 @@ impl UserTokenUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserTokenDb> {
+    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserToken> {
         // Flow of this should be:
         // 1 - Check if there is a non expired token already created for this user
         // 2 - If there is a token go to number 4
@@ -140,8 +138,8 @@ mod test {
             user_id: Uuid,
             token: String,
             expires_at: NaiveDateTime,
-        ) -> AppResult<UserTokenDb> {
-            Ok(UserTokenDb {
+        ) -> AppResult<UserToken> {
+            Ok(UserToken {
                 id: Uuid::new_v4(),
                 user_id,
                 token,
@@ -150,7 +148,7 @@ mod test {
             })
         }
 
-        async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserTokenDb>> {
+        async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserToken>> {
             Ok(None)
         }
 

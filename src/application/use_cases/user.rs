@@ -4,13 +4,13 @@ use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 
-use crate::{adapters::persistence::user::UserDb, app_error::AppResult};
+use crate::{app_error::AppResult, entities::user::User};
 
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
     async fn create_user(&self, username: &str, email: &str, password_hash: &str) -> AppResult<()>;
-    async fn get_user_by_username(&self, username: &str) -> AppResult<UserDb>;
-    async fn get_all_users(&self) -> AppResult<Vec<UserDb>>;
+    async fn get_user_by_username(&self, username: &str) -> AppResult<User>;
+    async fn get_all_users(&self) -> AppResult<Vec<User>>;
 }
 
 pub trait UserCredentialsHasher: Send + Sync {
@@ -19,7 +19,7 @@ pub trait UserCredentialsHasher: Send + Sync {
 }
 
 pub trait UserJwtService: Send + Sync {
-    fn generate_token(&self, user: &UserDb) -> AppResult<String>;
+    fn generate_token(&self, user: &User) -> AppResult<String>;
     fn validate_token(&self, token: &str) -> AppResult<()>;
 }
 
@@ -71,7 +71,7 @@ impl UserUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn get_all_users(&self) -> AppResult<Vec<UserDb>> {
+    pub async fn get_all_users(&self) -> AppResult<Vec<User>> {
         info!("Getting all users...");
 
         let users = self.persistence.get_all_users().await?;
@@ -105,9 +105,9 @@ mod test {
             Ok(())
         }
 
-        async fn get_user_by_username(&self, username: &str) -> AppResult<UserDb> {
+        async fn get_user_by_username(&self, username: &str) -> AppResult<User> {
             assert_eq!(username, "testuser");
-            Ok(UserDb {
+            Ok(User {
                 id: Uuid::new_v4(),
                 username: username.to_string(),
                 email: "testuser@gmail.com".to_string(),
@@ -117,8 +117,8 @@ mod test {
             })
         }
 
-        async fn get_all_users(&self) -> AppResult<Vec<UserDb>> {
-            Ok(vec![UserDb {
+        async fn get_all_users(&self) -> AppResult<Vec<User>> {
+            Ok(vec![User {
                 id: Uuid::new_v4(),
                 username: "testuser".to_string(),
                 email: "testuser@gmail.com".to_string(),
@@ -150,7 +150,7 @@ mod test {
     struct MockUserJWTService;
 
     impl UserJwtService for MockUserJWTService {
-        fn generate_token(&self, user: &UserDb) -> AppResult<String> {
+        fn generate_token(&self, user: &User) -> AppResult<String> {
             Ok(format!("token_{}", user.username))
         }
 
