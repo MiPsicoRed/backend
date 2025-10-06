@@ -21,6 +21,12 @@ pub trait UserTokenPersistence: Send + Sync {
         token: String,
         expires_at: NaiveDateTime,
     ) -> AppResult<UserTokenDb>;
+
+    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserTokenDb>>;
+
+    async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String>;
+
+    async fn add_verification_email(&self, from: &str, to: &str, body: &str) -> AppResult<()>;
 }
 
 #[derive(Clone)]
@@ -31,13 +37,12 @@ pub struct UserTokenUseCases {
 
 #[async_trait]
 pub trait UserTokenEmailService: Send + Sync {
-    async fn send_email(
+    /// Returns the 'from' email and the email body
+    async fn send_verification_email(
         &self,
-        from: &str,
         to: &[String],
-        subject: &str,
-        email_html: &str,
-    ) -> AppResult<()>;
+        token: &str,
+    ) -> AppResult<(String, String)>;
 }
 
 impl UserTokenUseCases {
@@ -52,23 +57,55 @@ impl UserTokenUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn generate_token(&self, user_id: &str) -> AppResult<UserTokenDb> {
-        info!("Attempting to generate token...");
+    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserTokenDb> {
+        // Flow of this should be:
+        // 1 - Check if there is a non expired token already created for this user
+        // 2 - If there is a token go to number 4
+        // 3 - Generate a token
+        // 4 - Attempt to send verifiaction email
+        // 5 - If email is sent correctly save email in the database
 
         let user_uuid = Uuid::parse_str(user_id)
             .map_err(|_| AppError::Internal("Invalid UUID string for given user_id:".into()))?;
 
-        let token = generate_verification_token();
+        info!("Checking if user already has a token...");
 
-        // expiry date = 5 days from now
-        let token_expiry_date = (chrono::Utc::now() + chrono::Duration::days(5)).naive_utc();
+        let token = if let Some(token) = self.persistence.check_user_token(&user_uuid).await? {
+            info!("User already has a token...");
+            token
+        } else {
+            info!("Attempting to generate token...");
+            let token = generate_verification_token();
 
-        let token = self
-            .persistence
-            .add_user_token(user_uuid, token, token_expiry_date)
+            // expiry date = 5 days from now
+            let token_expiry_date = (chrono::Utc::now() + chrono::Duration::days(5)).naive_utc();
+
+            let token = self
+                .persistence
+                .add_user_token(user_uuid, token, token_expiry_date)
+                .await?;
+
+            info!("User token generated.");
+
+            token
+        };
+
+        info!("Getting user email");
+        let user_email = self.persistence.get_user_email(&user_uuid).await?;
+        info!("User email retrieved");
+
+        info!("Sending verification email");
+        let email_res = self
+            .email_service
+            .send_verification_email(std::slice::from_ref(&user_email), &token.token)
             .await?;
+        info!("Sent verification email");
 
-        info!("User token generated.");
+        info!("Saving verification email on the database");
+        self.persistence
+            .add_verification_email(&email_res.0, &user_email, &email_res.1)
+            .await?;
+        info!("Saved verification email on the database");
 
         Ok(token)
     }
@@ -99,20 +136,35 @@ mod test {
                 created_at: None,
             })
         }
+
+        async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserTokenDb>> {
+            Ok(None)
+        }
+
+        async fn get_user_email(&self, _user_id: &Uuid) -> AppResult<String> {
+            Ok(String::new())
+        }
+
+        async fn add_verification_email(
+            &self,
+            _from: &str,
+            _to: &str,
+            _body: &str,
+        ) -> AppResult<()> {
+            Ok(())
+        }
     }
 
     struct MockUserTokenEmailService;
 
     #[async_trait]
     impl UserTokenEmailService for MockUserTokenEmailService {
-        async fn send_email(
+        async fn send_verification_email(
             &self,
-            _from: &str,
             _to: &[String],
-            _subject: &str,
-            _email_html: &str,
-        ) -> AppResult<()> {
-            Ok(())
+            _token: &str,
+        ) -> AppResult<(String, String)> {
+            Ok((String::new(), String::new()))
         }
     }
 
@@ -124,7 +176,7 @@ mod test {
         );
 
         let result = user_token_use_cases
-            .generate_token("24d7fa6e-4c52-40ff-ad25-5271e8c48345") // this does not mean the user is in the db, this is just a valid uuid
+            .generate_token_and_send_mail("24d7fa6e-4c52-40ff-ad25-5271e8c48345") // this does not mean the user is in the db, this is just a valid uuid
             .await;
 
         assert!(result.is_ok());

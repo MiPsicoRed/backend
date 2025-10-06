@@ -40,7 +40,7 @@ pub async fn generate_token(
     }
 
     let token = user_token_use_cases
-        .generate_token(&payload.user_id)
+        .generate_token_and_send_mail(&payload.user_id)
         .await?;
 
     Ok((
