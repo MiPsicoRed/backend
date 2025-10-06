@@ -105,7 +105,7 @@ impl EmailPersistence for PostgresPersistence {
         to: String,
         subject: String,
         body: String,
-        kind: EmailKindDb,
+        kind: EmailKind,
     ) -> AppResult<()> {
         let uuid = Uuid::new_v4();
         sqlx::query!(

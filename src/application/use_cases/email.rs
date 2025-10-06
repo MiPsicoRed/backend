@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use tracing::{info, instrument};
 
-use crate::{adapters::persistence::email::EmailKindDb, app_error::AppResult};
+use crate::{app_error::AppResult, entities::email::EmailKind};
 
 #[async_trait]
 pub trait EmailPersistence: Send + Sync {
@@ -13,7 +13,7 @@ pub trait EmailPersistence: Send + Sync {
         to: String,
         subject: String,
         body: String,
-        kind: EmailKindDb,
+        kind: EmailKind,
     ) -> AppResult<()>;
 }
 
@@ -34,7 +34,7 @@ impl EmailUseCases {
         to: String,
         subject: String,
         body: String,
-        kind: EmailKindDb,
+        kind: EmailKind,
     ) -> AppResult<()> {
         info!("Attempting add email...");
 
@@ -65,13 +65,13 @@ mod test {
             to: String,
             subject: String,
             body: String,
-            kind: EmailKindDb,
+            kind: EmailKind,
         ) -> AppResult<()> {
             assert_eq!(from, "testuser@gmail.com");
             assert_eq!(to, "testuser@gmail.com");
             assert_eq!(subject, "email subject");
             assert_eq!(body, "email body");
-            assert_eq!(kind, EmailKindDb::Verification);
+            assert_eq!(kind, EmailKind::Verification);
 
             Ok(())
         }

@@ -40,7 +40,7 @@ impl UserTokenPersistence for PostgresPersistence {
         user_id: Uuid,
         token: String,
         expires_at: NaiveDateTime,
-    ) -> AppResult<UserTokenDb> {
+    ) -> AppResult<UserToken> {
         let uuid = Uuid::new_v4();
 
         let token = sqlx::query_as!(
@@ -59,12 +59,12 @@ impl UserTokenPersistence for PostgresPersistence {
         .await
         .map_err(AppError::Database)?;
 
-        Ok(token)
+        Ok(token.into())
     }
 
     /// Checks if the given user has a token already created, returns the token if exists, returns error if the user does
     /// not exist, returns none if the user does not have a token or it has expired
-    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserTokenDb>> {
+    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserToken>> {
         let now = chrono::Utc::now().naive_utc();
 
         let token = sqlx::query_as!(
@@ -84,7 +84,7 @@ impl UserTokenPersistence for PostgresPersistence {
         .await
         .map_err(AppError::Database)?;
 
-        Ok(token)
+        Ok(token.map(UserToken::from))
     }
 
     /// Fetches the email of a user by id.

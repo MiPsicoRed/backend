@@ -6,10 +6,7 @@ use tracing::{info, instrument};
 use uuid::Uuid;
 
 use crate::{
-    adapters::{
-        persistence::user_token::UserTokenDb,
-        utils::verification_token::generate_verification_token,
-    },
+    adapters::utils::verification_token::generate_verification_token,
     app_error::{AppError, AppResult},
     entities::user_token::UserToken,
 };
@@ -21,9 +18,9 @@ pub trait UserTokenPersistence: Send + Sync {
         user_id: Uuid,
         token: String,
         expires_at: NaiveDateTime,
-    ) -> AppResult<UserTokenDb>;
+    ) -> AppResult<UserToken>;
 
-    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserTokenDb>>;
+    async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserToken>>;
 
     async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String>;
 
@@ -110,7 +107,7 @@ impl UserTokenUseCases {
             .await?;
         info!("Saved verification email on the database");
 
-        Ok(token.into())
+        Ok(token)
     }
 
     #[instrument(skip(self))]
@@ -141,8 +138,8 @@ mod test {
             user_id: Uuid,
             token: String,
             expires_at: NaiveDateTime,
-        ) -> AppResult<UserTokenDb> {
-            Ok(UserTokenDb {
+        ) -> AppResult<UserToken> {
+            Ok(UserToken {
                 id: Uuid::new_v4(),
                 user_id,
                 token,
@@ -151,7 +148,7 @@ mod test {
             })
         }
 
-        async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserTokenDb>> {
+        async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserToken>> {
             Ok(None)
         }
 
