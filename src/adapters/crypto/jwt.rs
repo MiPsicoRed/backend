@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Claims {
     email: String,
-    validated: bool,
+    verified: bool,
     exp: usize,
 }
 
@@ -33,7 +33,7 @@ impl UserJwtService for JwtService {
             &Header::default(),
             &Claims {
                 email: user.email.clone(),
-                validated: user.verified.unwrap_or(false),
+                verified: user.verified.unwrap_or(false),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
             },
             &EncodingKey::from_secret(self.config.jwt_secret.as_bytes()),
