@@ -125,4 +125,57 @@ impl UserTokenPersistence for PostgresPersistence {
 
         Ok(())
     }
+
+    /// Transaction that check if the given token is valid (exists and it's not expired),
+    /// and updates the user of that token to verified, also deletes the token after the process.
+    async fn verify_user_token(&self, token: &str) -> AppResult<()> {
+        let now = chrono::Utc::now().naive_utc();
+
+        let mut tx = self.pool.begin().await.map_err(AppError::Database)?;
+
+        // Fetch the token and check if it's valid (not expired)
+        let user_token = sqlx::query_as!(
+            UserTokenDb,
+            r#"
+                SELECT id, user_id, token, expires_at, created_at
+                FROM user_tokens
+                WHERE token = $1 AND expires_at > $2
+            "#,
+            token,
+            now
+        )
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        // Update the user to verified
+        sqlx::query!(
+            r#"
+                UPDATE users
+                SET verified = true
+                WHERE id = $1
+            "#,
+            user_token.user_id
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        // Delete the token
+        sqlx::query!(
+            r#"
+                DELETE FROM user_tokens
+                WHERE id = $1
+            "#,
+            user_token.id
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        // Commit the transaction
+        tx.commit().await.map_err(AppError::Database)?;
+
+        Ok(())
+    }
 }

@@ -27,6 +27,8 @@ pub trait UserTokenPersistence: Send + Sync {
     async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String>;
 
     async fn add_verification_email(&self, from: &str, to: &str, body: &str) -> AppResult<()>;
+
+    async fn verify_user_token(&self, token: &str) -> AppResult<()>;
 }
 
 #[derive(Clone)]
@@ -109,6 +111,17 @@ impl UserTokenUseCases {
 
         Ok(token)
     }
+
+    #[instrument(skip(self))]
+    pub async fn verify_token(&self, token: &str) -> AppResult<()> {
+        info!("Attempting to verify token...");
+
+        self.persistence.verify_user_token(token).await?;
+
+        info!("Verified user token");
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -151,6 +164,11 @@ mod test {
             _to: &str,
             _body: &str,
         ) -> AppResult<()> {
+            Ok(())
+        }
+
+        async fn verify_user_token(&self, token: &str) -> AppResult<()> {
+            assert!(!token.is_empty());
             Ok(())
         }
     }
