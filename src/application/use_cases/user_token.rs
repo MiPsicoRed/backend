@@ -25,12 +25,30 @@ pub trait UserTokenPersistence: Send + Sync {
 
 #[derive(Clone)]
 pub struct UserTokenUseCases {
+    email_service: Arc<dyn UserTokenEmailService>,
     persistence: Arc<dyn UserTokenPersistence>,
 }
 
+#[async_trait]
+pub trait UserTokenEmailService: Send + Sync {
+    async fn send_email(
+        &self,
+        from: &str,
+        to: &[String],
+        subject: &str,
+        email_html: &str,
+    ) -> AppResult<()>;
+}
+
 impl UserTokenUseCases {
-    pub fn new(persistence: Arc<dyn UserTokenPersistence>) -> Self {
-        Self { persistence }
+    pub fn new(
+        email_service: Arc<dyn UserTokenEmailService>,
+        persistence: Arc<dyn UserTokenPersistence>,
+    ) -> Self {
+        Self {
+            email_service,
+            persistence,
+        }
     }
 
     #[instrument(skip(self))]
@@ -83,9 +101,27 @@ mod test {
         }
     }
 
+    struct MockUserTokenEmailService;
+
+    #[async_trait]
+    impl UserTokenEmailService for MockUserTokenEmailService {
+        async fn send_email(
+            &self,
+            _from: &str,
+            _to: &[String],
+            _subject: &str,
+            _email_html: &str,
+        ) -> AppResult<()> {
+            Ok(())
+        }
+    }
+
     #[tokio::test]
     async fn generate_token_works() {
-        let user_token_use_cases = UserTokenUseCases::new(Arc::new(MockUserTokenPersistence));
+        let user_token_use_cases = UserTokenUseCases::new(
+            Arc::new(MockUserTokenEmailService),
+            Arc::new(MockUserTokenPersistence),
+        );
 
         let result = user_token_use_cases
             .generate_token("24d7fa6e-4c52-40ff-ad25-5271e8c48345") // this does not mean the user is in the db, this is just a valid uuid
