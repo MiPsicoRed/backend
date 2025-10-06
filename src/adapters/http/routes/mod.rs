@@ -1,4 +1,5 @@
 pub mod user;
+pub mod user_token;
 
 use std::sync::Arc;
 
@@ -44,5 +45,7 @@ async fn auth_middleware(
 
 /// Define the routes of out backend
 pub fn router() -> Router<AppState> {
-    Router::new().nest("/user", user::router())
+    Router::new()
+        .nest("/user", user::router())
+        .nest("/user_token", user_token::router())
 }
