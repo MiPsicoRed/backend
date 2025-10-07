@@ -37,6 +37,7 @@ impl Validateable for RegisterPayload {
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct RegisterResponse {
+    user_id: String,
     success: bool,
 }
 
@@ -60,7 +61,7 @@ pub async fn register(
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    user_use_cases
+    let uuid = user_use_cases
         .add(
             &payload.username,
             &payload.usersurname,
@@ -73,6 +74,6 @@ pub async fn register(
 
     Ok((
         StatusCode::CREATED,
-        Json(RegisterResponse { success: true }),
+        Json(RegisterResponse {success:true, user_id: uuid.to_string() }),
     ))
 }

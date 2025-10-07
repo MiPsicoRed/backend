@@ -50,7 +50,7 @@ impl UserPersistence for PostgresPersistence {
         phone: &str,
         birthdate: Option<NaiveDate>,
         password_hash: &str,
-    ) -> AppResult<()> {
+    ) -> AppResult<Uuid> {
         let uuid = Uuid::new_v4();
 
         sqlx::query!(
@@ -67,7 +67,7 @@ impl UserPersistence for PostgresPersistence {
         .await
         .map_err(AppError::Database)?;
 
-        Ok(())
+        Ok(uuid)
     }
 
     async fn get_user_by_email(&self, email: &str) -> AppResult<User> {
