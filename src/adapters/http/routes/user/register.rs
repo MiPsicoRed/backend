@@ -4,6 +4,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
+use utoipa::ToSchema;
 
 use crate::{
     adapters::http::routes::Validateable,
@@ -11,13 +12,14 @@ use crate::{
     use_cases::user::UserUseCases,
 };
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct RegisterPayload {
     username: String,
     usersurname: String,
     email: String,
     phone: String,
     birthdate: Option<chrono::NaiveDate>,
+    #[schema(value_type = String, format = "password")]
     password: SecretString,
 }
 
@@ -33,12 +35,20 @@ impl Validateable for RegisterPayload {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RegisterResponse {
     success: bool,
 }
 
-/// Creates a new user based on the submitted credentials.
+#[utoipa::path(post, path = "/api/user/register", 
+    responses( 
+        (status = 201, description = "Created", body = RegisterResponse),
+        (status = 400, description = "Invalid payload"),
+        (status = 500, description = "Internal server error or database error")
+    ), 
+    tag = "User",
+    summary = "Creates a new user based on the submitted credentials"
+)]
 #[instrument(skip(user_use_cases))]
 pub async fn register(
     State(user_use_cases): State<Arc<UserUseCases>>,

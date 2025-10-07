@@ -3,6 +3,7 @@ use axum::{
     routing::{get, post},
 };
 use serde::Serialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::adapters::http::routes::user::login::login;
@@ -10,11 +11,11 @@ use crate::adapters::http::routes::user::register::register;
 use crate::adapters::http::{app_state::AppState, routes::auth_middleware};
 use crate::{adapters::http::routes::user::get_all::get_all_users, entities::user::User};
 
-mod get_all;
-mod login;
-mod register;
+pub mod get_all;
+pub mod login;
+pub mod register;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 struct UserResponse {
     pub id: Uuid,
     pub username: String,

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
+use utoipa::ToSchema;
 
 use crate::{
     adapters::http::routes::{Validateable, user_token::UserTokenResponse},
@@ -10,7 +11,7 @@ use crate::{
     use_cases::user_token::UserTokenUseCases,
 };
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct GeneratePayload {
     user_id: String,
 }
@@ -21,13 +22,25 @@ impl Validateable for GeneratePayload {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GenerateResponse {
     success: bool,
     data: UserTokenResponse,
 }
 
-/// Creates a new user based on the submitted credentials.
+#[utoipa::path(post, path = "/api/user_token/generate", 
+    responses( 
+        (status = 200, description = "Success", body = GenerateResponse),
+        (status = 400, description = "Invalid payload"),
+        (status = 401, description = "Unauthorized"),
+        (status = 500, description = "Internal server error or database error")
+    ), 
+    security(
+        ("bearer_auth" = [])  
+    ),
+    tag = "User Token",
+    summary = "Generates a new verification token for the given user_id and sends them a confirmation email"
+)]
 #[instrument(skip(user_token_use_cases))]
 pub async fn generate_token(
     State(user_token_use_cases): State<Arc<UserTokenUseCases>>,
@@ -44,7 +57,7 @@ pub async fn generate_token(
         .await?;
 
     Ok((
-        StatusCode::CREATED,
+        StatusCode::OK,
         Json(GenerateResponse {
             success: true,
             data: token.into(),

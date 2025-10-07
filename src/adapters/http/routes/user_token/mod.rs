@@ -1,6 +1,7 @@
 use axum::routing::get;
 use axum::{Router, middleware, routing::post};
 use serde::Serialize;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::adapters::http::routes::user_token::generate::generate_token;
@@ -8,10 +9,10 @@ use crate::adapters::http::routes::user_token::verify::verify;
 use crate::adapters::http::{app_state::AppState, routes::auth_middleware};
 use crate::entities::user_token::UserToken;
 
-mod generate;
-mod verify;
+pub mod generate;
+pub mod verify;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 struct UserTokenResponse {
     pub id: Uuid,
     pub user_id: Uuid,

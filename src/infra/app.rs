@@ -1,6 +1,7 @@
 use axum::{Extension, Router, http};
 use http::header::{AUTHORIZATION, CONTENT_TYPE};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
+use utoipa::OpenApi;
 use uuid::Uuid;
 
 use crate::{
@@ -24,6 +25,10 @@ pub fn create_app(app_state: AppState) -> Router {
     let jwt_service_ext = app_state.user_use_cases.jwt_service.clone();
 
     Router::new()
+        .merge(
+            utoipa_swagger_ui::SwaggerUi::new("/swagger-ui")
+                .url("/api-docs/openapi.json", super::api_doc::ApiDoc::openapi()),
+        )
         .nest("/api", adapters::http::routes::router())
         .with_state(app_state)
         .layer(Extension(jwt_service_ext))
