@@ -11,7 +11,7 @@ pub enum AppError {
     #[error("Invalid payload")]
     InvalidPayload,
 
-    #[error("Internal error: {0}")]
+    #[error("Unauthorized: {0}")]
     Unauthorized(String),
 
     #[error("Internal error: {0}")]
