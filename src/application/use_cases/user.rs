@@ -8,8 +8,16 @@ use crate::{app_error::AppResult, entities::user::User};
 
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
-    async fn create_user(&self, username: &str, email: &str, password_hash: &str) -> AppResult<()>;
-    async fn get_user_by_username(&self, username: &str) -> AppResult<User>;
+    async fn create_user(
+        &self,
+        username: &str,
+        usersurname: &str,
+        email: &str,
+        phone: &str,
+        birthdate: Option<chrono::NaiveDate>,
+        password_hash: &str,
+    ) -> AppResult<()>;
+    async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
 }
 
@@ -44,11 +52,21 @@ impl UserUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn add(&self, username: &str, email: &str, password: &SecretString) -> AppResult<()> {
+    pub async fn add(
+        &self,
+        username: &str,
+        usersurname: &str,
+        email: &str,
+        phone: &str,
+        birthdate: Option<chrono::NaiveDate>,
+        password: &SecretString,
+    ) -> AppResult<()> {
         info!("Adding user...");
 
         let hash = &self.hasher.hash_password(password.expose_secret())?;
-        self.persistence.create_user(username, email, hash).await?;
+        self.persistence
+            .create_user(username, usersurname, email, phone, birthdate, hash)
+            .await?;
 
         info!("Adding user finished.");
 
@@ -56,10 +74,10 @@ impl UserUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn login(&self, username: &str, password: &SecretString) -> AppResult<String> {
+    pub async fn login(&self, email: &str, password: &SecretString) -> AppResult<String> {
         info!("Attempting user login...");
 
-        let user = self.persistence.get_user_by_username(username).await?;
+        let user = self.persistence.get_user_by_email(email).await?;
         self.hasher
             .verify_password(&user.password_hash, password.expose_secret())?;
 
@@ -96,21 +114,30 @@ mod test {
         async fn create_user(
             &self,
             username: &str,
+            usersurname: &str,
             email: &str,
+            phone: &str,
+            birthdate: Option<chrono::NaiveDate>,
             _password_hash: &str,
         ) -> AppResult<()> {
-            assert_eq!(username, "testuser");
+            assert_eq!(username, "john");
+            assert_eq!(usersurname, "doe");
             assert_eq!(email, "testuser@gmail.com");
+            assert_eq!(phone, "+34666666666");
+            assert!(birthdate.is_some());
 
             Ok(())
         }
 
-        async fn get_user_by_username(&self, username: &str) -> AppResult<User> {
-            assert_eq!(username, "testuser");
+        async fn get_user_by_email(&self, email: &str) -> AppResult<User> {
+            assert_eq!(email, "testuser@gmail.com");
             Ok(User {
                 id: Uuid::new_v4(),
-                username: username.to_string(),
-                email: "testuser@gmail.com".to_string(),
+                username: "john".to_string(),
+                usersurname: "doe".to_string(),
+                email: email.to_string(),
+                phone: "+34666666666".to_string(),
+                birthdate: None,
                 verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
@@ -120,8 +147,11 @@ mod test {
         async fn get_all_users(&self) -> AppResult<Vec<User>> {
             Ok(vec![User {
                 id: Uuid::new_v4(),
-                username: "testuser".to_string(),
+                username: "john".to_string(),
+                usersurname: "doe".to_string(),
                 email: "testuser@gmail.com".to_string(),
+                phone: "+34666666666".to_string(),
+                birthdate: None,
                 verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
@@ -174,7 +204,14 @@ mod test {
         );
 
         let result = user_use_cases
-            .add("testuser", "testuser@gmail.com", &"testuser_pw".into())
+            .add(
+                "john",
+                "doe",
+                "testuser@gmail.com",
+                "+34666666666",
+                None,
+                &"testuser_pw".into(),
+            )
             .await;
 
         assert!(result.is_ok());

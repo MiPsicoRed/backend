@@ -13,13 +13,14 @@ use crate::{
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct LoginPayload {
-    username: String,
+    email: String,
     password: SecretString,
 }
 
 impl Validateable for LoginPayload {
+    // TODO: Server validate email is valid email
     fn valid(&self) -> bool {
-        !self.username.is_empty() && !self.password.expose_secret().is_empty()
+        !self.email.is_empty() && !self.password.expose_secret().is_empty()
     }
 }
 
@@ -42,7 +43,7 @@ pub async fn login(
     }
 
     let jwt = user_use_cases
-        .login(&payload.username, &payload.password)
+        .login(&payload.email, &payload.password)
         .await?;
 
     Ok((
