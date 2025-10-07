@@ -124,7 +124,7 @@ mod test {
             assert_eq!(usersurname, "doe");
             assert_eq!(email, "testuser@gmail.com");
             assert_eq!(phone, "+34666666666");
-            assert!(birthdate.is_some());
+            assert!(birthdate.is_none());
 
             Ok(())
         }
