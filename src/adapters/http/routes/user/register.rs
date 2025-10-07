@@ -14,15 +14,22 @@ use crate::{
 #[derive(Debug, Clone, Deserialize)]
 pub struct RegisterPayload {
     username: String,
+    usersurname: String,
     email: String,
+    phone: String,
+    birthdate: Option<chrono::NaiveDate>,
     password: SecretString,
 }
 
 impl Validateable for RegisterPayload {
+    // TODO: Server validate email is valid email
     fn valid(&self) -> bool {
         !self.email.is_empty()
             && !self.password.expose_secret().is_empty()
             && !self.username.is_empty()
+            && !self.usersurname.is_empty()
+            && !self.phone.is_empty()
+            && self.birthdate.is_some()
     }
 }
 
@@ -44,7 +51,14 @@ pub async fn register(
     }
 
     user_use_cases
-        .add(&payload.username, &payload.email, &payload.password)
+        .add(
+            &payload.username,
+            &payload.usersurname,
+            &payload.email,
+            &payload.phone,
+            payload.birthdate,
+            &payload.password,
+        )
         .await?;
 
     Ok((

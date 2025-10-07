@@ -18,7 +18,10 @@ mod register;
 struct UserResponse {
     pub id: Uuid,
     pub username: String,
+    pub usersurname: String,
     pub email: String,
+    pub phone: String,
+    pub birthdate: Option<chrono::NaiveDate>,
     pub verified: Option<bool>,
     pub password_hash: String,
     pub created_at: Option<chrono::NaiveDateTime>,
@@ -29,7 +32,10 @@ impl From<User> for UserResponse {
         UserResponse {
             id: user.id,
             username: user.username,
+            usersurname: user.usersurname,
             email: user.email,
+            phone: user.phone,
+            birthdate: user.birthdate,
             verified: user.verified,
             password_hash: user.password_hash,
             created_at: user.created_at,
