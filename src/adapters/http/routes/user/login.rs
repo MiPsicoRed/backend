@@ -4,6 +4,7 @@ use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
+use utoipa::ToSchema;
 
 use crate::{
     adapters::http::routes::Validateable,
@@ -11,9 +12,10 @@ use crate::{
     use_cases::user::UserUseCases,
 };
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct LoginPayload {
     email: String,
+    #[schema(value_type = String, format = "password")]
     password: SecretString,
 }
 
@@ -24,13 +26,21 @@ impl Validateable for LoginPayload {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LoginResponse {
     jwt: String,
     success: bool,
 }
 
-/// Attempts to login as the specified user
+#[utoipa::path(post, path = "/api/user/login", 
+    responses( 
+        (status = 200, description = "Ok", body = LoginResponse),
+        (status = 400, description = "Invalid payload"),
+        (status = 500, description = "Internal server error or database error")
+    ), 
+    tag = "User",
+    summary = "Login as a specific user"
+)]
 #[instrument(skip(user_use_cases))]
 pub async fn login(
     State(user_use_cases): State<Arc<UserUseCases>>,
@@ -47,7 +57,7 @@ pub async fn login(
         .await?;
 
     Ok((
-        StatusCode::CREATED,
+        StatusCode::OK,
         Json(LoginResponse { success: true, jwt }),
     ))
 }
