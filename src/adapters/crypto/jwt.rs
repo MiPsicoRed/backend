@@ -12,7 +12,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Claims {
-    email: String,
+    uuid: String,
+    name: String,
     verified: bool,
     exp: usize,
 }
@@ -32,7 +33,8 @@ impl UserJwtService for JwtService {
         let token = encode(
             &Header::default(),
             &Claims {
-                email: user.email.clone(),
+                uuid: user.id.to_string(),
+                name: user.username.clone(),
                 verified: user.verified.unwrap_or(false),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
             },
