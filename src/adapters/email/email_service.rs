@@ -31,7 +31,7 @@ impl UserTokenEmailService for EmailService {
         token: &str,
         // TODO: Is a little bit confusing returning a tuple here, maybe we should use a struct...
     ) -> AppResult<(String, String)> {
-        let body = verification_email_html(&self.config.base_api_url, token);
+        let body = verification_email_html(&self.config.base_frontend_url, token);
 
         let email = CreateEmailBaseOptions::new(
             &self.config.resend_from_email,
@@ -50,8 +50,8 @@ impl UserTokenEmailService for EmailService {
     }
 }
 
-fn verification_email_html(base_api_url: &str, token: &str) -> String {
-    let verify_url = format!("{}/api/user_token/verify?token={}", base_api_url, token);
+fn verification_email_html(base_frontend_url: &str, token: &str) -> String {
+    let verify_url = format!("{}/verified?token={}", base_frontend_url, token);
 
     format!(
         r#"
