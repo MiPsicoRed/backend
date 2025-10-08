@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 
-use crate::{app_error::AppResult, entities::user::User};
+use crate::{adapters::crypto::jwt::Claims, app_error::AppResult, entities::user::User};
 
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
@@ -28,7 +28,7 @@ pub trait UserCredentialsHasher: Send + Sync {
 
 pub trait UserJwtService: Send + Sync {
     fn generate_token(&self, user: &User) -> AppResult<String>;
-    fn validate_token(&self, token: &str) -> AppResult<()>;
+    fn validate_token(&self, token: &str) -> AppResult<Claims>;
 }
 
 #[derive(Clone)]
@@ -202,9 +202,9 @@ mod test {
             Ok(format!("token_{}", user.username))
         }
 
-        fn validate_token(&self, token: &str) -> AppResult<()> {
+        fn validate_token(&self, token: &str) -> AppResult<Claims> {
             if token.starts_with("token_") {
-                Ok(())
+                Ok(Claims::default())
             } else {
                 Err(crate::app_error::AppError::Unauthorized(
                     "Invalid Token".into(),

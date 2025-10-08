@@ -10,12 +10,12 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct Claims {
-    uuid: String,
-    name: String,
-    role: i32,
-    verified: bool,
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Claims {
+    pub uuid: String, // We need to pub this to access it from the middleware, since both are adapters, is that okay?
+    pub name: String,
+    pub role: i32,
+    pub verified: bool,
     exp: usize,
 }
 
@@ -47,8 +47,8 @@ impl UserJwtService for JwtService {
         Ok(token)
     }
 
-    fn validate_token(&self, token: &str) -> AppResult<()> {
-        decode::<Claims>(
+    fn validate_token(&self, token: &str) -> AppResult<Claims> {
+        let result = decode::<Claims>(
             token,
             &DecodingKey::from_secret(self.config.jwt_secret.as_bytes()),
             &Validation::default(),
@@ -63,6 +63,6 @@ impl UserJwtService for JwtService {
             _ => AppError::Unauthorized("Token validation failed".into()),
         })?;
 
-        Ok(())
+        Ok(result.claims)
     }
 }
