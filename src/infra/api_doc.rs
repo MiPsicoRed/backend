@@ -14,6 +14,7 @@ use utoipa::{
         //user_token
         routes::user_token::generate::generate_token,
         routes::user_token::verify::verify,
+        routes::user_token::validate::validate_token,
     ),
     components(
         schemas(
@@ -24,6 +25,7 @@ use utoipa::{
             // user_token
             routes::user_token::generate::GenerateResponse,
             routes::user_token::verify::VerifyResponse,
+            routes::user_token::validate::ValidateResponse,
         )
     ),
     modifiers(&SecurityAddon),
