@@ -57,7 +57,7 @@ impl UserTokenUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<UserToken> {
+    pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<()> {
         // Flow of this should be:
         // 1 - Check if there is a non expired token already created for this user
         // 2 - If there is a token go to number 4
@@ -107,7 +107,7 @@ impl UserTokenUseCases {
             .await?;
         info!("Saved verification email on the database");
 
-        Ok(token)
+        Ok(())
     }
 
     #[instrument(skip(self))]

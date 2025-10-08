@@ -6,7 +6,7 @@ use tracing::{info, instrument};
 use utoipa::ToSchema;
 
 use crate::{
-    adapters::http::routes::{Validateable, user_token::UserTokenResponse},
+    adapters::http::routes::{Validateable},
     app_error::{AppError, AppResult},
     use_cases::user_token::UserTokenUseCases,
 };
@@ -25,7 +25,6 @@ impl Validateable for GeneratePayload {
 #[derive(Debug, Serialize, ToSchema)]
 pub struct GenerateResponse {
     success: bool,
-    data: UserTokenResponse,
 }
 
 #[utoipa::path(post, path = "/api/user_token/generate", 
@@ -52,15 +51,14 @@ pub async fn generate_token(
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let token = user_token_use_cases
+    user_token_use_cases
         .generate_token_and_send_mail(&payload.user_id)
         .await?;
 
     Ok((
         StatusCode::OK,
         Json(GenerateResponse {
-            success: true,
-            data: token.into(),
+            success: true
         }),
     ))
 }

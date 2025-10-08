@@ -14,6 +14,7 @@ pub mod generate;
 pub mod validate;
 pub mod verify;
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize, ToSchema)]
 struct UserTokenResponse {
     pub id: Uuid,
