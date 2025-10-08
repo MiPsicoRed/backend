@@ -36,7 +36,7 @@ impl Display for Role {
 impl Role {
     pub const ALL: &'static [Self] = &[Self::Patient, Self::Professional, Self::Admin];
 
-    pub fn to_id(self) -> i32 {
+    pub fn to_id(&self) -> i32 {
         match self {
             Role::Patient => 1,
             Role::Professional => 2,

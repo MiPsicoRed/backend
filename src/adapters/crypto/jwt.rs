@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 struct Claims {
     uuid: String,
     name: String,
+    role: i32,
     verified: bool,
     exp: usize,
 }
@@ -35,6 +36,7 @@ impl UserJwtService for JwtService {
             &Claims {
                 uuid: user.id.to_string(),
                 name: user.username.clone(),
+                role: user.role.to_id(),
                 verified: user.verified.unwrap_or(false),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
             },
