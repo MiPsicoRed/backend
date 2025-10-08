@@ -13,8 +13,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let config = Arc::new(AppConfig::from_env());
 
     let postgres_arc = Arc::new(postgres_persistence().await?);
-    let jwt_service = jwt_service(config.clone());
-    let email_service = email_service(config.clone());
+    let jwt_service = jwt_service(Arc::clone(&config));
+    let email_service = email_service(Arc::clone(&config));
     let argon_hasher = argon2_password_hasher();
 
     let user_use_cases = UserUseCases::new(
