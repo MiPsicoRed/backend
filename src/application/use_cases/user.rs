@@ -108,6 +108,8 @@ mod test {
     use async_trait::async_trait;
     use uuid::Uuid;
 
+    use crate::entities::user::Role;
+
     use super::*;
 
     struct MockUserPersistence;
@@ -131,6 +133,7 @@ mod test {
 
             Ok(User {
                 id: Uuid::new_v4(),
+                role: Role::default(),
                 username: username.to_string(),
                 usersurname: usersurname.to_string(),
                 email: email.to_string(),
@@ -146,6 +149,7 @@ mod test {
             assert_eq!(email, "testuser@gmail.com");
             Ok(User {
                 id: Uuid::new_v4(),
+                role: Role::default(),
                 username: "john".to_string(),
                 usersurname: "doe".to_string(),
                 email: email.to_string(),
@@ -160,6 +164,7 @@ mod test {
         async fn get_all_users(&self) -> AppResult<Vec<User>> {
             Ok(vec![User {
                 id: Uuid::new_v4(),
+                role: Role::default(),
                 username: "john".to_string(),
                 usersurname: "doe".to_string(),
                 email: "testuser@gmail.com".to_string(),
