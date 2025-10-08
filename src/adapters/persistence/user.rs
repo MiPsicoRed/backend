@@ -50,11 +50,14 @@ impl UserPersistence for PostgresPersistence {
         phone: &str,
         birthdate: Option<NaiveDate>,
         password_hash: &str,
-    ) -> AppResult<Uuid> {
+    ) -> AppResult<User> {
         let uuid = Uuid::new_v4();
 
-        sqlx::query!(
-            "INSERT INTO users (id, username, usersurname, email, phone, birthdate, password_hash) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        sqlx::query_as!(
+        UserDb,
+            "INSERT INTO users (id, username, usersurname, email, phone, birthdate, password_hash) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id, username, usersurname, email, phone, birthdate, verified, password_hash, created_at",
             uuid,
             username,
             usersurname,
@@ -63,11 +66,10 @@ impl UserPersistence for PostgresPersistence {
             birthdate,
             password_hash
         )
-        .execute(&self.pool)
+        .fetch_one(&self.pool)
         .await
-        .map_err(AppError::Database)?;
-
-        Ok(uuid)
+        .map_err(AppError::Database)
+        .map(User::from)
     }
 
     async fn get_user_by_email(&self, email: &str) -> AppResult<User> {

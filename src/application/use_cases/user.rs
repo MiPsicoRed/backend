@@ -3,7 +3,6 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
-use uuid::Uuid;
 
 use crate::{app_error::AppResult, entities::user::User};
 
@@ -17,7 +16,7 @@ pub trait UserPersistence: Send + Sync {
         phone: &str,
         birthdate: Option<chrono::NaiveDate>,
         password_hash: &str,
-    ) -> AppResult<Uuid>;
+    ) -> AppResult<User>;
     async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
 }
@@ -61,18 +60,20 @@ impl UserUseCases {
         phone: &str,
         birthdate: Option<chrono::NaiveDate>,
         password: &SecretString,
-    ) -> AppResult<Uuid> {
+    ) -> AppResult<String> {
         info!("Adding user...");
 
         let hash = &self.hasher.hash_password(password.expose_secret())?;
-        let uuid = self
+        let user = self
             .persistence
             .create_user(username, usersurname, email, phone, birthdate, hash)
             .await?;
 
         info!("Adding user finished.");
 
-        Ok(uuid)
+        let jwt_token = self.jwt_service.generate_token(&user)?;
+
+        Ok(jwt_token)
     }
 
     #[instrument(skip(self))]
@@ -121,14 +122,24 @@ mod test {
             phone: &str,
             birthdate: Option<chrono::NaiveDate>,
             _password_hash: &str,
-        ) -> AppResult<Uuid> {
+        ) -> AppResult<User> {
             assert_eq!(username, "john");
             assert_eq!(usersurname, "doe");
             assert_eq!(email, "testuser@gmail.com");
             assert_eq!(phone, "+34666666666");
             assert!(birthdate.is_none());
 
-            Ok(Uuid::new_v4())
+            Ok(User {
+                id: Uuid::new_v4(),
+                username: username.to_string(),
+                usersurname: usersurname.to_string(),
+                email: email.to_string(),
+                phone: phone.to_string(),
+                birthdate,
+                verified: Some(false),
+                password_hash: "".to_string(),
+                created_at: None,
+            })
         }
 
         async fn get_user_by_email(&self, email: &str) -> AppResult<User> {
