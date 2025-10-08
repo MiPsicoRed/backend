@@ -18,6 +18,7 @@ pub mod register;
 #[derive(Debug, Serialize, ToSchema)]
 struct UserResponse {
     pub id: Uuid,
+    pub role_id: i32, // should we return the string or the id
     pub username: String,
     pub usersurname: String,
     pub email: String,
@@ -32,6 +33,7 @@ impl From<User> for UserResponse {
     fn from(user: User) -> Self {
         UserResponse {
             id: user.id,
+            role_id: user.role.to_id(),
             username: user.username,
             usersurname: user.usersurname,
             email: user.email,

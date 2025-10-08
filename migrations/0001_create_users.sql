@@ -1,5 +1,6 @@
 CREATE TABLE users (
     id UUID PRIMARY KEY,
+    role_id INTEGER NOT NULL,
     username VARCHAR(50) NOT NULL,
     usersurname VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
