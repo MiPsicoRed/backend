@@ -14,7 +14,9 @@ pub fn create_app(app_state: AppState) -> Router {
 
     let cors = CorsLayer::new()
         .allow_origin(
-            "http://localhost:5173"
+            app_state
+                .config
+                .base_frontend_url
                 .parse::<http::HeaderValue>()
                 .unwrap(),
         )
