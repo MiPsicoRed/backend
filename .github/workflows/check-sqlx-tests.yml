@@ -1,0 +1,75 @@
+# GitHub Actions Workflow to verify SQLx offline data is up-to-date and run tests
+# This runs on pull requests to ensure developers ran 'cargo sqlx prepare' and tests pass
+name: Check SQLx Offline Data and Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.sqlx/**'
+
+jobs:
+  check-sqlx:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mipsicored_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install sqlx-cli
+        run: cargo install sqlx-cli --no-default-features --features postgres
+      
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgres://user:password@localhost:5432/mipsicored_test
+        run: sqlx migrate run
+      
+      - name: Check if sqlx offline data is up-to-date
+        env:
+          DATABASE_URL: postgres://user:password@localhost:5432/mipsicored_test
+        run: cargo sqlx prepare --check
+      
+      - name: Remind to run sqlx prepare
+        if: failure()
+        run: |
+          echo "❌ SQLx offline data is out of date!"
+          echo ""
+          echo "Run the following command locally and commit the changes:"
+          echo "  cargo sqlx prepare"
+          echo ""
+          echo "This updates the .sqlx/ directory with the latest query metadata."
+          exit 1
