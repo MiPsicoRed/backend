@@ -7,7 +7,7 @@ use crate::{
 };
 use std::fs::File;
 use std::sync::Arc;
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub async fn init_app_state() -> anyhow::Result<AppState> {
     let config = Arc::new(AppConfig::from_env());
@@ -34,6 +34,9 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 }
 
 pub fn init_tracing() {
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| "axum_trainer=debug,tower_http=debug".into());
+
     // Console (pretty logs)
     let console_layer = fmt::layer()
         .with_target(false) // don’t show target (module path)
@@ -49,6 +52,7 @@ pub fn init_tracing() {
         .with_span_list(true);
 
     tracing_subscriber::registry()
+        .with(filter)
         .with(console_layer)
         .with(json_layer)
         .try_init()
