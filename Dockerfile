@@ -2,7 +2,7 @@
 FROM rustlang/rust:nightly-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache musl-dev pkgconfig openssl-dev openssl-libs-static
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev openssl-libs-static curl
 
 WORKDIR /app
 
