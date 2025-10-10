@@ -15,6 +15,12 @@ use utoipa::{
         routes::user_token::generate::generate_token,
         routes::user_token::verify::verify,
         routes::user_token::validate::validate_token,
+        //patient
+        routes::patient::create::create_patient,
+        routes::patient::delete::delete_patient,
+        routes::patient::read_all::read_all_patients,
+        routes::patient::read_single::read_single_patient,
+        routes::patient::update::update_patient,
     ),
     components(
         schemas(
@@ -26,12 +32,19 @@ use utoipa::{
             routes::user_token::generate::GenerateResponse,
             routes::user_token::verify::VerifyResponse,
             routes::user_token::validate::ValidateResponse,
+            // patient
+            routes::patient::create::CreateResponse,
+            routes::patient::delete::DeleteResponse,
+            routes::patient::read_all::ReadAllResponse,
+            routes::patient::read_single::ReadSingleResponse,
+            routes::patient::update::UpdateResponse,
         )
     ),
     modifiers(&SecurityAddon),
     tags(
         (name = "User", description = "User endpoints"),
         (name = "User Token", description = "User Token endpoints"),
+        (name = "Patient", description = "Patient endpoints"),
     )
 )]
 pub struct ApiDoc;
