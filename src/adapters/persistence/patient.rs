@@ -67,6 +67,19 @@ impl PatientPersistence for PostgresPersistence {
     ) -> AppResult<()> {
         let uuid = Uuid::new_v4();
 
+        if let Some(uid) = user_id {
+            let exists =
+                sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", uid)
+                    .fetch_one(&self.pool)
+                    .await
+                    .map_err(AppError::Database)?
+                    .unwrap_or(false);
+
+            if !exists {
+                return Err(AppError::Internal(String::from("User does not exist")));
+            }
+        }
+
         sqlx::query!(
                 "INSERT INTO patients (id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies) 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",

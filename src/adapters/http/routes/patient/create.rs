@@ -59,7 +59,7 @@ pub async fn create_patient(
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-
+    // If the user is informed we make sure is valid uuid first
     let user_uuid = payload.user_id
     .map(|uid| Uuid::parse_str(&uid).map_err(|_| AppError::Internal("Invalid UUID string".into())))
     .transpose()?;
