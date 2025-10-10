@@ -1,0 +1,92 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies, created_at\n                FROM patients\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "gender_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "sexual_orientation_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "birthdate",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 5,
+        "name": "phone",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "emergency_contact_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "emergency_contact_phone",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "insurance_policy_number",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "medical_history",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "current_medications",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "allergies",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "7008ea2872750ac4a449126aa740ed1466fa38b315d48cfcbd9e89fe21fcb9d7"
+}
