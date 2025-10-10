@@ -87,6 +87,23 @@ impl UserTokenPersistence for PostgresPersistence {
         Ok(token.map(UserToken::from))
     }
 
+    /// Checks if the given user is already validated
+    async fn check_validation_status(&self, user_id: &Uuid) -> AppResult<bool> {
+        let result = sqlx::query!(
+            r#"
+                SELECT verified
+                FROM users
+                WHERE id = $1
+            "#,
+            user_id
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(result.and_then(|r| r.verified).unwrap_or(false))
+    }
+
     /// Fetches the email of a user by id.
     async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String> {
         let email = sqlx::query_scalar!(
