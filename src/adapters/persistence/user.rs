@@ -1,7 +1,6 @@
 use std::fmt::Display;
 
 use async_trait::async_trait;
-use chrono::NaiveDate;
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -20,8 +19,6 @@ pub struct UserDb {
     pub username: String,
     pub usersurname: String,
     pub email: String,
-    pub phone: String,
-    pub birthdate: Option<chrono::NaiveDate>,
     pub verified: Option<bool>,
     pub password_hash: String,
     pub created_at: Option<chrono::NaiveDateTime>,
@@ -35,8 +32,6 @@ impl From<UserDb> for User {
             username: user_db.username,
             usersurname: user_db.usersurname,
             email: user_db.email,
-            phone: user_db.phone,
-            birthdate: user_db.birthdate,
             verified: user_db.verified,
             password_hash: user_db.password_hash,
             created_at: user_db.created_at,
@@ -95,24 +90,20 @@ impl UserPersistence for PostgresPersistence {
         username: &str,
         usersurname: &str,
         email: &str,
-        phone: &str,
-        birthdate: Option<NaiveDate>,
         password_hash: &str,
     ) -> AppResult<User> {
         let uuid = Uuid::new_v4();
 
         sqlx::query_as!(
         UserDb,
-            "INSERT INTO users (id, role_id, username, usersurname, email, phone, birthdate, password_hash) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING id, role_id as role, username, usersurname, email, phone, birthdate, verified, password_hash, created_at",
+            "INSERT INTO users (id, role_id, username, usersurname, email, password_hash) 
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, role_id as role, username, usersurname, email, verified, password_hash, created_at",
             uuid,
             RoleDb::default().to_id(),
             username,
             usersurname,
             email,
-            phone,
-            birthdate,
             password_hash
         )
         .fetch_one(&self.pool)
@@ -124,7 +115,7 @@ impl UserPersistence for PostgresPersistence {
     async fn get_user_by_email(&self, email: &str) -> AppResult<User> {
         sqlx::query_as!(
             UserDb,
-            "SELECT id, role_id as role, username, usersurname, email, phone, birthdate, verified, password_hash, created_at 
+            "SELECT id, role_id as role, username, usersurname, email, verified, password_hash, created_at 
             FROM users 
             WHERE email = $1",
             email
@@ -138,7 +129,7 @@ impl UserPersistence for PostgresPersistence {
     async fn get_all_users(&self) -> AppResult<Vec<User>> {
         sqlx::query_as!(
             UserDb,
-            r#"SELECT id, role_id as role, username, usersurname, email, phone, birthdate, verified, ''::text as "password_hash!", created_at
+            r#"SELECT id, role_id as role, username, usersurname, email, verified, ''::text as "password_hash!", created_at
                 FROM users"#
         )
         .fetch_all(&self.pool)

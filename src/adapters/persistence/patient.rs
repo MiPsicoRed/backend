@@ -4,11 +4,9 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::{
-    adapters::persistence::{PostgresPersistence, user::UserDb},
+    adapters::persistence::PostgresPersistence,
     app_error::{AppError, AppResult},
-    entities::{
-        gender::Gender, patient::Patient, sexual_orientation::SexualOrientation, user::User,
-    },
+    entities::{gender::Gender, patient::Patient, sexual_orientation::SexualOrientation},
     use_cases::patient::PatientPersistence,
 };
 
@@ -69,41 +67,7 @@ impl PatientPersistence for PostgresPersistence {
     ) -> AppResult<()> {
         let uuid = Uuid::new_v4();
 
-        // If we are creating a patient from an already existing user we already have the birthdate and the phone
-        if user_id.is_some() {
-            let user = sqlx::query_as!(
-            UserDb,
-                "SELECT id, role_id as role, username, usersurname, email, phone, birthdate, verified, password_hash, created_at 
-                FROM users 
-                WHERE id = $1",
-                uuid
-            )
-            .fetch_one(&self.pool)
-            .await
-            .map_err(AppError::Database)
-            .map(User::from)?;
-
-            sqlx::query!(
-                    "INSERT INTO patients (id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies) 
-                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
-                    uuid,
-                    user_id,
-                    gender.to_id(),
-                    sexual_orientation.to_id(),
-                    user.birthdate,
-                    user.phone,
-                    emergency_contact_name,
-                    emergency_contact_phone,
-                    insurance_policy_number,
-                    medical_history,
-                    current_medications,
-                    allergies
-                )
-                .execute(&self.pool)
-                .await
-                .map_err(AppError::Database)?;
-        } else {
-            sqlx::query!(
+        sqlx::query!(
                 "INSERT INTO patients (id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies) 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
                 uuid,
@@ -122,7 +86,6 @@ impl PatientPersistence for PostgresPersistence {
             .execute(&self.pool)
             .await
             .map_err(AppError::Database)?;
-        }
 
         Ok(())
     }
