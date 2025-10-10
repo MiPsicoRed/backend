@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Extension, Json};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::Validateable, app_error::{AppError, AppResult}, entities::{gender::Gender, sexual_orientation::SexualOrientation}, use_cases::patient::PatientUseCases
+    adapters::http::routes::{AuthUser, Validateable}, app_error::{AppError, AppResult}, entities::{gender::Gender, sexual_orientation::SexualOrientation, user::Role}, use_cases::patient::PatientUseCases
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
@@ -46,14 +46,22 @@ pub struct CreateResponse {
         ("bearer_auth" = [])  
     ), 
     tag = "Patient",
-    summary = "Creates a new patient"
+    summary = "Creates a new patient",
+    description = "\n\n**Required:** Verified Email + Admin/Professional Role OR Creating for requesting user_id"
 )]
 #[instrument(skip(use_cases))]
 pub async fn create_patient(
+    Extension(auth_user): Extension<AuthUser>,
     State(use_cases): State<Arc<PatientUseCases>>,
     Json(payload): Json<CreatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Create patient called");
+    let is_authorized = authorized(&auth_user, &payload);
+    if !is_authorized {
+        return Err(AppError::Unauthorized(
+            String::from("You don't have permission for this endpoint")
+        ));
+    }
 
     if !payload.valid() {
         return AppResult::Err(AppError::InvalidPayload);
@@ -72,4 +80,19 @@ pub async fn create_patient(
         StatusCode::CREATED,
         Json(CreateResponse {success:true }),
     ))
+}
+
+fn authorized(auth_user: &AuthUser, payload: &CreatePayload) -> bool {
+    let requesting_role = Role::from_id(auth_user.role_id).unwrap_or_default();
+    
+    // Check authorization
+    match requesting_role {
+        Role::Admin | Role::Professional => true,
+        Role::Patient => {
+            payload.user_id
+                .as_ref()
+                .map(|id| id == &auth_user.user_id)
+                .unwrap_or(false) // Don't allow if no user_id specified
+        }
+    }
 }

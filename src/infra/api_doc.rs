@@ -60,6 +60,11 @@ impl Modify for SecurityAddon {
                     HttpBuilder::new()
                         .scheme(HttpAuthScheme::Bearer)
                         .bearer_format("JWT")
+                        .description(Some(
+                            "JWT Bearer token for authentication.\n\n\
+                            Some endpoints require verified email or specific roles. \
+                            Check individual endpoint descriptions for requirements.",
+                        ))
                         .build(),
                 ),
             )

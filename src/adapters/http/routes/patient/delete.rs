@@ -12,12 +12,12 @@ use crate::{
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct DeletePayload {
-    user_id: String,
+    patient_id: String,
 }
 
 impl Validateable for DeletePayload {
     fn valid(&self) -> bool {
-        !self.user_id.is_empty()
+        !self.patient_id.is_empty()
     }
 }
 
@@ -36,7 +36,8 @@ pub struct DeleteResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Patient",
-    summary = "Deletes a patient"
+    summary = "Deletes a patient",
+    description = "\n\n**Required:** Verified Email + Admin Role"
 )]
 #[instrument(skip(use_cases))]
 pub async fn delete_patient(
@@ -49,10 +50,10 @@ pub async fn delete_patient(
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let user_uuid = Uuid::parse_str(&payload.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
+    let patient_uuid = Uuid::parse_str(&payload.patient_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     use_cases
-        .delete(user_uuid)
+        .delete(patient_uuid)
         .await?;
 
     Ok((

@@ -12,13 +12,13 @@ use crate::{
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
 pub struct ReadSingleQuery {
-    #[param(example = "insert-user-uuid")]
-    user_id: String,
+    #[param(example = "insert-patient-uuid")]
+    patient_id: String,
 }
 
 impl Validateable for ReadSingleQuery {
     fn valid(&self) -> bool {
-        !self.user_id.is_empty()
+        !self.patient_id.is_empty()
     }
 }
 
@@ -39,7 +39,8 @@ pub struct ReadSingleResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Patient",
-    summary = "Retrieves data of a single patient"
+    summary = "Retrieves data of a single patient",
+    description = "\n\n**Required:** Verified Email"
 )]
 #[instrument(skip(use_cases))]
 pub async fn read_single_patient(
@@ -52,10 +53,10 @@ pub async fn read_single_patient(
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let user_uuid = Uuid::parse_str(&params.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
+    let patient_uuid = Uuid::parse_str(&params.patient_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     let patient = use_cases
-        .read_single(user_uuid)
+        .read_single(patient_uuid)
         .await?;
 
     Ok((

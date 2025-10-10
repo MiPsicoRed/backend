@@ -15,7 +15,7 @@ use crate::{
                 create::create_patient, delete::delete_patient, read_all::read_all_patients,
                 read_single::read_single_patient, update::update_patient,
             },
-            verified_middleware,
+            require_admin, require_role_middleware, verified_middleware,
         },
     },
     entities::patient::Patient,
@@ -66,11 +66,21 @@ impl From<Patient> for PatientResponse {
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/create", post(create_patient))
-        .route("/delete", delete(delete_patient))
-        .route("/all", get(read_all_patients))
-        .route("/single", get(read_single_patient))
-        .route("/update", patch(update_patient))
+        .route("/create", post(create_patient)) // Required: Verified Email + Admin/Professional Role OR Creating for requesting user_id
+        .route(
+            "/delete",
+            delete(delete_patient) // Require verified + admin
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_admin()),
+        )
+        .route(
+            "/all",
+            get(read_all_patients) // Require verified + admin
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_admin()),
+        )
+        .route("/single", get(read_single_patient)) // Only auth + mail verified required
+        .route("/update", patch(update_patient)) // Only auth + mail verified required
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }
