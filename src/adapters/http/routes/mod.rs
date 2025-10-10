@@ -69,4 +69,5 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .nest("/user", user::router())
         .nest("/user_token", user_token::router())
+        .nest("/patient", patient::router())
 }

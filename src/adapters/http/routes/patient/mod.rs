@@ -67,8 +67,8 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/create", post(create_patient))
         .route("/delete", delete(delete_patient))
-        .route("/read-all", get(read_all_patients))
-        .route("/read-single", get(read_single_patient))
+        .route("/all", get(read_all_patients))
+        .route("/single", get(read_single_patient))
         .route("/update", patch(update_patient))
         .layer(middleware::from_fn(auth_middleware))
 }

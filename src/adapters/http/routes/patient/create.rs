@@ -36,7 +36,7 @@ pub struct CreateResponse {
     success: bool,
 }
 
-#[utoipa::path(post, path = "/api/patient/register", 
+#[utoipa::path(post, path = "/api/patient/create", 
     responses( 
         (status = 201, description = "Created", body = CreateResponse),
         (status = 400, description = "Invalid payload"),

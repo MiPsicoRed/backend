@@ -1,21 +1,22 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
     adapters::http::routes::{patient::PatientResponse, Validateable}, app_error::{AppError, AppResult}, use_cases::patient::PatientUseCases
 };
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct ReadSinglePayload {
+#[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
+pub struct ReadSingleQuery {
+    #[param(example = "insert-user-uuid")]
     user_id: String,
 }
 
-impl Validateable for ReadSinglePayload {
+impl Validateable for ReadSingleQuery {
     fn valid(&self) -> bool {
         !self.user_id.is_empty()
     }
@@ -28,6 +29,7 @@ pub struct ReadSingleResponse {
 }
 
 #[utoipa::path(get, path = "/api/patient/single", 
+    params(ReadSingleQuery),
     responses( 
         (status = 200, description = "Data retrieved correctly", body = ReadSingleResponse),
         (status = 400, description = "Invalid payload"),
@@ -37,20 +39,20 @@ pub struct ReadSingleResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Patient",
-    summary = "Deletes a patient"
+    summary = "Retrieves data of a single patient"
 )]
 #[instrument(skip(use_cases))]
 pub async fn read_single_patient(
     State(use_cases): State<Arc<PatientUseCases>>,
-    Json(payload): Json<ReadSinglePayload>,
+    Query(params): Query<ReadSingleQuery>,
 ) -> AppResult<impl IntoResponse> {
     info!("Read single patient called");
 
-    if !payload.valid() {
+    if !params.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let user_uuid = Uuid::parse_str(&payload.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
+    let user_uuid = Uuid::parse_str(&params.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     let patient = use_cases
         .read_single(user_uuid)
