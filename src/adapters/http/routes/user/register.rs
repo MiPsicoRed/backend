@@ -17,8 +17,6 @@ pub struct RegisterPayload {
     username: String,
     usersurname: String,
     email: String,
-    phone: String,
-    birthdate: Option<chrono::NaiveDate>,
     #[schema(value_type = String, format = "password")]
     password: SecretString,
 }
@@ -30,8 +28,6 @@ impl Validateable for RegisterPayload {
             && !self.password.expose_secret().is_empty()
             && !self.username.is_empty()
             && !self.usersurname.is_empty()
-            && !self.phone.is_empty()
-            && self.birthdate.is_some()
     }
 }
 
@@ -66,8 +62,6 @@ pub async fn register(
             &payload.username,
             &payload.usersurname,
             &payload.email,
-            &payload.phone,
-            payload.birthdate,
             &payload.password,
         )
         .await?;

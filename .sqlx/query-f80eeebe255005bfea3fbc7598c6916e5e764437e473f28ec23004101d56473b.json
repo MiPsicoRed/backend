@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE patients \n                SET gender_id = $2, sexual_orientation_id = $3, birthdate = $4, phone = $5, emergency_contact_name = $6, emergency_contact_phone = $7, insurance_policy_number = $8, medical_history = $9, current_medications = $10, allergies = $11\n                WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Date",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f80eeebe255005bfea3fbc7598c6916e5e764437e473f28ec23004101d56473b"
+}

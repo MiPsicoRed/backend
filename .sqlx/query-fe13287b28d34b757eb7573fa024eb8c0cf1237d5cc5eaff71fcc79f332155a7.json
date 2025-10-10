@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (id, role_id, username, usersurname, email, phone, birthdate, password_hash) \n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            RETURNING id, role_id as role, username, usersurname, email, phone, birthdate, verified, password_hash, created_at",
+  "query": "INSERT INTO users (id, role_id, username, usersurname, email, password_hash) \n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING id, role_id as role, username, usersurname, email, verified, password_hash, created_at",
   "describe": {
     "columns": [
       {
@@ -30,26 +30,16 @@
       },
       {
         "ordinal": 5,
-        "name": "phone",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
-        "name": "birthdate",
-        "type_info": "Date"
-      },
-      {
-        "ordinal": 7,
         "name": "verified",
         "type_info": "Bool"
       },
       {
-        "ordinal": 8,
+        "ordinal": 6,
         "name": "password_hash",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 9,
+        "ordinal": 7,
         "name": "created_at",
         "type_info": "Timestamp"
       }
@@ -61,14 +51,10 @@
         "Varchar",
         "Varchar",
         "Varchar",
-        "Varchar",
-        "Date",
         "Varchar"
       ]
     },
     "nullable": [
-      false,
-      false,
       false,
       false,
       false,
@@ -79,5 +65,5 @@
       true
     ]
   },
-  "hash": "15987f7ca0f5138df520d3c06fe96b11681800f9a31f1b1e83a744eaeb88cf80"
+  "hash": "fe13287b28d34b757eb7573fa024eb8c0cf1237d5cc5eaff71fcc79f332155a7"
 }

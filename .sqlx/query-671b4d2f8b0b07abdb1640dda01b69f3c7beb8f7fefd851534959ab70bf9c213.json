@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, role_id as role, username, usersurname, email, phone, birthdate, verified, password_hash, created_at \n            FROM users \n            WHERE email = $1",
+  "query": "SELECT id, role_id as role, username, usersurname, email, verified, ''::text as \"password_hash!\", created_at\n                FROM users",
   "describe": {
     "columns": [
       {
@@ -30,34 +30,22 @@
       },
       {
         "ordinal": 5,
-        "name": "phone",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
-        "name": "birthdate",
-        "type_info": "Date"
-      },
-      {
-        "ordinal": 7,
         "name": "verified",
         "type_info": "Bool"
       },
       {
-        "ordinal": 8,
-        "name": "password_hash",
-        "type_info": "Varchar"
+        "ordinal": 6,
+        "name": "password_hash!",
+        "type_info": "Text"
       },
       {
-        "ordinal": 9,
+        "ordinal": 7,
         "name": "created_at",
         "type_info": "Timestamp"
       }
     ],
     "parameters": {
-      "Left": [
-        "Text"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -65,12 +53,10 @@
       false,
       false,
       false,
-      false,
-      false,
       true,
-      false,
+      null,
       true
     ]
   },
-  "hash": "8563501149dcdc830a87fdb43286a61f3029d8661dd6a539adf24c0c674aca02"
+  "hash": "671b4d2f8b0b07abdb1640dda01b69f3c7beb8f7fefd851534959ab70bf9c213"
 }

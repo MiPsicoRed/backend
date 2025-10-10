@@ -13,8 +13,6 @@ pub trait UserPersistence: Send + Sync {
         username: &str,
         usersurname: &str,
         email: &str,
-        phone: &str,
-        birthdate: Option<chrono::NaiveDate>,
         password_hash: &str,
     ) -> AppResult<User>;
     async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
@@ -57,8 +55,6 @@ impl UserUseCases {
         username: &str,
         usersurname: &str,
         email: &str,
-        phone: &str,
-        birthdate: Option<chrono::NaiveDate>,
         password: &SecretString,
     ) -> AppResult<String> {
         info!("Adding user...");
@@ -66,7 +62,7 @@ impl UserUseCases {
         let hash = &self.hasher.hash_password(password.expose_secret())?;
         let user = self
             .persistence
-            .create_user(username, usersurname, email, phone, birthdate, hash)
+            .create_user(username, usersurname, email, hash)
             .await?;
 
         info!("Adding user finished.");
@@ -121,15 +117,11 @@ mod test {
             username: &str,
             usersurname: &str,
             email: &str,
-            phone: &str,
-            birthdate: Option<chrono::NaiveDate>,
             _password_hash: &str,
         ) -> AppResult<User> {
             assert_eq!(username, "john");
             assert_eq!(usersurname, "doe");
             assert_eq!(email, "testuser@gmail.com");
-            assert_eq!(phone, "+34666666666");
-            assert!(birthdate.is_none());
 
             Ok(User {
                 id: Uuid::new_v4(),
@@ -137,8 +129,6 @@ mod test {
                 username: username.to_string(),
                 usersurname: usersurname.to_string(),
                 email: email.to_string(),
-                phone: phone.to_string(),
-                birthdate,
                 verified: Some(false),
                 password_hash: "".to_string(),
                 created_at: None,
@@ -153,8 +143,6 @@ mod test {
                 username: "john".to_string(),
                 usersurname: "doe".to_string(),
                 email: email.to_string(),
-                phone: "+34666666666".to_string(),
-                birthdate: None,
                 verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
@@ -168,8 +156,6 @@ mod test {
                 username: "john".to_string(),
                 usersurname: "doe".to_string(),
                 email: "testuser@gmail.com".to_string(),
-                phone: "+34666666666".to_string(),
-                birthdate: None,
                 verified: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
@@ -222,14 +208,7 @@ mod test {
         );
 
         let result = user_use_cases
-            .add(
-                "john",
-                "doe",
-                "testuser@gmail.com",
-                "+34666666666",
-                None,
-                &"testuser_pw".into(),
-            )
+            .add("john", "doe", "testuser@gmail.com", &"testuser_pw".into())
             .await;
 
         assert!(result.is_ok());
