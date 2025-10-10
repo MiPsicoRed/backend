@@ -15,6 +15,7 @@ use crate::{
                 create::create_patient, delete::delete_patient, read_all::read_all_patients,
                 read_single::read_single_patient, update::update_patient,
             },
+            verified_middleware,
         },
     },
     entities::patient::Patient,
@@ -70,5 +71,6 @@ pub fn router() -> Router<AppState> {
         .route("/all", get(read_all_patients))
         .route("/single", get(read_single_patient))
         .route("/update", patch(update_patient))
+        .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }

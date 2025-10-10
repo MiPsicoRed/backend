@@ -7,6 +7,7 @@ use std::sync::Arc;
 use crate::{
     adapters::{crypto::jwt::Claims, http::app_state::AppState},
     app_error::AppError,
+    entities::user::Role,
     use_cases::user::UserJwtService,
 };
 use axum::{Extension, Router, extract::Request, middleware::Next, response::Response};
@@ -52,7 +53,7 @@ async fn auth_middleware(
         .strip_prefix("Bearer ")
         .ok_or_else(|| AppError::Unauthorized("Invalid authorization format".to_string()))?;
 
-    // Verify token and get user (TODO: Get claims and insert into request extensions)
+    // Verify token and get user
     let claims = user_jwt_service
         .validate_token(token)
         .map_err(|e| AppError::Unauthorized(format!("Invalid token: {}", e)))?;
@@ -62,6 +63,59 @@ async fn auth_middleware(
     request.extensions_mut().insert(AuthUser::from(claims));
 
     Ok(next.run(request).await)
+}
+
+/// Middleware that only let's a request through if the user claims to be verified in the jwt
+async fn verified_middleware(
+    Extension(auth_user): Extension<AuthUser>,
+    request: Request,
+    next: Next,
+) -> Result<Response, AppError> {
+    if !auth_user.verified {
+        return Err(AppError::Unauthorized("User not verified".to_string()));
+    }
+    Ok(next.run(request).await)
+}
+
+#[derive(Clone)]
+struct RequiredRoles(Vec<Role>);
+
+async fn require_role_middleware(
+    Extension(auth_user): Extension<AuthUser>,
+    Extension(required_roles): Extension<RequiredRoles>,
+    request: Request,
+    next: Next,
+) -> Result<Response, AppError> {
+    let user_role = Role::from_id(auth_user.role_id).unwrap_or(Role::Patient);
+
+    if !required_roles.0.contains(&user_role) {
+        return Err(AppError::Unauthorized(
+            "Insufficient permissions".to_string(),
+        ));
+    }
+
+    Ok(next.run(request).await)
+}
+
+/// Helper functions for common roles
+#[allow(dead_code)]
+fn require_roles(roles: Vec<Role>) -> Extension<RequiredRoles> {
+    Extension(RequiredRoles(roles))
+}
+
+#[allow(dead_code)]
+fn require_admin() -> Extension<RequiredRoles> {
+    Extension(RequiredRoles(vec![Role::Admin]))
+}
+
+#[allow(dead_code)]
+fn require_professional_or_admin() -> Extension<RequiredRoles> {
+    Extension(RequiredRoles(vec![Role::Admin, Role::Professional]))
+}
+
+#[allow(dead_code)]
+fn require_patient_or_admin() -> Extension<RequiredRoles> {
+    Extension(RequiredRoles(vec![Role::Admin, Role::Patient]))
 }
 
 /// Define the routes of out backend

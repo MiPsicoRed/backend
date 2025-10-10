@@ -13,7 +13,7 @@ pub struct User {
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub enum Role {
     #[default]
     Patient,
