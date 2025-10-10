@@ -13,11 +13,10 @@ use crate::{
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct UpdatePayload {
     id: String,
-    user_id: Option<String>, //we're not going to update the user_id but we need it to know if we have to modify the birthdate or the phone
     gender_id: i32,
     sexual_orientation_id: i32,
     birthdate: Option<chrono::NaiveDate>,
-    phone: Option<String>,
+    phone: String,
     emergency_contact_name: Option<String>,
     emergency_contact_phone: Option<String>,
     insurance_policy_number: Option<String>,
@@ -28,11 +27,7 @@ pub struct UpdatePayload {
 
 impl Validateable for UpdatePayload {
     fn valid(&self) -> bool {
-        if self.user_id.is_some()
-            && (self.birthdate.is_none() || self.phone.as_ref().is_none_or(|x| x.is_empty())) {
-                return false;
-            }
-        true
+        self.birthdate.is_some() && !self.phone.is_empty()
     }
 }
 
@@ -63,11 +58,6 @@ pub async fn update_patient(
     if !payload.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
-
-    payload.user_id
-    .map(|uid| Uuid::parse_str(&uid).map_err(|_| AppError::Internal("Invalid UUID string".into())))
-    .transpose()?;
-
 
     let id = Uuid::parse_str(&payload.id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 

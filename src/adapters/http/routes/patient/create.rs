@@ -16,7 +16,7 @@ pub struct CreatePayload {
     gender_id: i32,
     sexual_orientation_id: i32,
     birthdate: Option<chrono::NaiveDate>,
-    phone: Option<String>,
+    phone: String,
     emergency_contact_name: Option<String>,
     emergency_contact_phone: Option<String>,
     insurance_policy_number: Option<String>,
@@ -27,11 +27,7 @@ pub struct CreatePayload {
 
 impl Validateable for CreatePayload {
     fn valid(&self) -> bool {
-        if self.user_id.is_some()
-            && (self.birthdate.is_none() || self.phone.as_ref().is_none_or(|x| x.is_empty())) {
-                return false;
-            }
-        true
+        self.birthdate.is_some() && !self.phone.is_empty()
     }
 }
 
