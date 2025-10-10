@@ -25,7 +25,9 @@ pub struct GetAllUsersResponse {
         ("bearer_auth" = [])  
     ),
     tag = "User",
-    summary = "Get all users"
+    summary = "Get all users",
+    description = "Retrieves a list of all users. \n\n
+        **Required:** Verified Email + Admin Role"
 )]
 #[instrument(skip(user_use_cases))]
 pub async fn get_all_users(

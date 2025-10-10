@@ -6,8 +6,10 @@ use serde::Serialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::adapters::http::routes::user::login::login;
-use crate::adapters::http::routes::user::register::register;
+use crate::adapters::http::routes::{
+    require_admin, require_role_middleware, user::register::register,
+};
+use crate::adapters::http::routes::{user::login::login, verified_middleware};
 use crate::adapters::http::{app_state::AppState, routes::auth_middleware};
 use crate::{adapters::http::routes::user::get_all::get_all_users, entities::user::User};
 
@@ -48,8 +50,14 @@ pub fn router() -> Router<AppState> {
         .route("/login", post(login));
 
     let protected_routes = Router::new()
-        .route("/all", get(get_all_users))
-        .layer(middleware::from_fn(auth_middleware));
+        .route(
+            "/all",
+            get(get_all_users)
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_admin()), // Extension needs to go AFTER the middleware
+        )
+        .layer(middleware::from_fn(verified_middleware))
+        .layer(middleware::from_fn(auth_middleware)); // Main auth middleware always has to be the LAST
 
     Router::new().merge(public_routes).merge(protected_routes)
 }

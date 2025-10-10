@@ -40,7 +40,7 @@ pub fn router() -> Router<AppState> {
     let public_routes = Router::new().route("/verify", get(verify));
 
     let protected_routes = Router::new()
-        .route("/generate", post(generate_token))
+        .route("/generate", post(generate_token)) // **Required:** Admin Role OR Generating for requesting user_id
         .route("/validate", post(validate_token))
         .layer(middleware::from_fn(auth_middleware));
 

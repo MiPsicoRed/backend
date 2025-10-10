@@ -24,7 +24,8 @@ pub struct ReadAllResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Patient",
-    summary = "Returns all patients with their info"
+    summary = "Returns all patients with their info",
+    description = "\n\n**Required:** Verified Email + Admin Role"
 )]
 #[instrument(skip(use_cases))]
 pub async fn read_all_patients(

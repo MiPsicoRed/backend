@@ -46,7 +46,8 @@ pub struct UpdateResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Patient",
-    summary = "Updates a patient"
+    summary = "Updates a patient",
+    description = "\n\n**Required:** Verified Email"
 )]
 #[instrument(skip(use_cases))]
 pub async fn update_patient(
