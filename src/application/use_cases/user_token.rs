@@ -22,6 +22,8 @@ pub trait UserTokenPersistence: Send + Sync {
 
     async fn check_user_token(&self, user_id: &Uuid) -> AppResult<Option<UserToken>>;
 
+    async fn check_validation_status(&self, user_id: &Uuid) -> AppResult<bool>;
+
     async fn get_user_email(&self, user_id: &Uuid) -> AppResult<String>;
 
     async fn add_verification_email(&self, from: &str, to: &str, body: &str) -> AppResult<()>;
@@ -59,6 +61,7 @@ impl UserTokenUseCases {
     #[instrument(skip(self))]
     pub async fn generate_token_and_send_mail(&self, user_id: &str) -> AppResult<()> {
         // Flow of this should be:
+        // 0 - Check if the user is already validated
         // 1 - Check if there is a non expired token already created for this user
         // 2 - If there is a token go to number 4
         // 3 - Generate a token
@@ -67,6 +70,13 @@ impl UserTokenUseCases {
 
         let user_uuid = Uuid::parse_str(user_id)
             .map_err(|_| AppError::Internal("Invalid UUID string for given user_id:".into()))?;
+
+        info!("Checking if user is already verified...");
+
+        let is_already_valid = self.persistence.check_validation_status(&user_uuid).await?;
+        if is_already_valid {
+            return Err(AppError::Internal(String::from("User is already valid")));
+        }
 
         info!("Checking if user already has a token...");
 
@@ -150,6 +160,10 @@ mod test {
 
         async fn check_user_token(&self, _user_id: &Uuid) -> AppResult<Option<UserToken>> {
             Ok(None)
+        }
+
+        async fn check_validation_status(&self, _user_id: &Uuid) -> AppResult<bool> {
+            Ok(false)
         }
 
         async fn get_user_email(&self, _user_id: &Uuid) -> AppResult<String> {
