@@ -1,19 +1,21 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Extension, Json};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::{patient::PatientResponse, Validateable}, app_error::{AppError, AppResult}, use_cases::patient::PatientUseCases
+    adapters::http::routes::{patient::PatientResponse, AuthUser, Validateable}, app_error::{AppError, AppResult}, entities::user::Role, use_cases::patient::PatientUseCases
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
 pub struct PatientReadSingleQuery {
     #[param(example = "insert-patient-uuid")]
     patient_id: String,
+    #[param(example = "insert-user-uuid(optional)")]
+    user_id: Option<String>,
 }
 
 impl Validateable for PatientReadSingleQuery {
@@ -40,14 +42,22 @@ pub struct PatientReadSingleResponse {
     ),
     tag = "Patient",
     summary = "Retrieves data of a single patient",
-    description = "\n\n**Required:** Verified Email"
+    description = "\n\n**Required:** Verified Email + Admin/Professional Role or requesting user_id, user_id is not mandatory if admin/professional role"
 )]
 #[instrument(skip(use_cases))]
 pub async fn read_single_patient(
+    Extension(auth_user): Extension<AuthUser>,
     State(use_cases): State<Arc<PatientUseCases>>,
     Query(params): Query<PatientReadSingleQuery>,
 ) -> AppResult<impl IntoResponse> {
     info!("Read single patient called");
+    let is_authorized = authorized(&auth_user, &params);
+    if !is_authorized {
+        return Err(AppError::Unauthorized(
+            String::from("You don't have permission for this endpoint")
+        ));
+    }
+    
 
     if !params.valid() {
         return AppResult::Err(AppError::InvalidPayload);
@@ -63,4 +73,19 @@ pub async fn read_single_patient(
         StatusCode::OK,
         Json(PatientReadSingleResponse { success:true , data: patient.into()}),
     ))
+}
+
+fn authorized(auth_user: &AuthUser, query: &PatientReadSingleQuery) -> bool {
+    let requesting_role = Role::from_id(auth_user.role_id).unwrap_or_default();
+    
+    // Check authorization
+    match requesting_role {
+        Role::Admin | Role::Professional => true,
+        Role::Patient => {
+            query.user_id
+                .as_ref()
+                .map(|id| id == &auth_user.user_id)
+                .unwrap_or(false) // Don't allow if no user_id specified
+        }
+    }
 }

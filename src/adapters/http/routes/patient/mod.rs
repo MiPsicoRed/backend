@@ -47,7 +47,7 @@ struct PatientResponse {
 impl From<Patient> for PatientResponse {
     fn from(patient: Patient) -> Self {
         PatientResponse {
-            id: patient.id,
+            id: patient.id.unwrap(), // This should never panic as this should never be null when responding
             user_id: patient.user_id,
             gender: patient.gender.to_id(),
             sexual_orientation: patient.sexual_orientation.to_id(),
@@ -79,7 +79,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_admin()),
         )
-        .route("/single", get(read_single_patient)) // Only auth + mail verified required
+        .route("/single", get(read_single_patient)) // Required: Verified Email + Admin/Professional Role or requesting user_id
         .route("/update", patch(update_patient)) // Only auth + mail verified required
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))

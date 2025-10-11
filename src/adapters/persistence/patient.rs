@@ -31,7 +31,7 @@ pub struct PatientDb {
 impl From<PatientDb> for Patient {
     fn from(patient_db: PatientDb) -> Self {
         Patient {
-            id: patient_db.id,
+            id: Some(patient_db.id),
             user_id: patient_db.user_id,
             gender: Gender::from_id(patient_db.gender_id).unwrap_or_default(),
             sexual_orientation: SexualOrientation::from_id(patient_db.sexual_orientation_id)
@@ -51,23 +51,10 @@ impl From<PatientDb> for Patient {
 
 #[async_trait]
 impl PatientPersistence for PostgresPersistence {
-    async fn create(
-        &self,
-        user_id: Option<Uuid>,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()> {
+    async fn create(&self, patient: &Patient) -> AppResult<()> {
         let uuid = Uuid::new_v4();
 
-        if let Some(uid) = user_id {
+        if let Some(uid) = patient.user_id {
             let exists =
                 sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", uid)
                     .fetch_one(&self.pool)
@@ -84,17 +71,17 @@ impl PatientPersistence for PostgresPersistence {
                 "INSERT INTO patients (id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies) 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
                 uuid,
-                user_id,
-                gender.to_id(),
-                sexual_orientation.to_id(),
-                birthdate,
-                phone,
-                emergency_contact_name,
-                emergency_contact_phone,
-                insurance_policy_number,
-                medical_history,
-                current_medications,
-                allergies
+                patient.user_id,
+                patient.gender.to_id(),
+                patient.sexual_orientation.to_id(),
+                patient.birthdate,
+                patient.phone,
+                patient.emergency_contact_name,
+                patient.emergency_contact_phone,
+                patient.insurance_policy_number,
+                patient.medical_history,
+                patient.current_medications,
+                patient.allergies
             )
             .execute(&self.pool)
             .await
@@ -133,35 +120,22 @@ impl PatientPersistence for PostgresPersistence {
         .map(Patient::from)
     }
 
-    async fn update(
-        &self,
-        id: Uuid,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()> {
+    async fn update(&self, patient: &Patient) -> AppResult<()> {
         sqlx::query!(
             "UPDATE patients 
                 SET gender_id = $2, sexual_orientation_id = $3, birthdate = $4, phone = $5, emergency_contact_name = $6, emergency_contact_phone = $7, insurance_policy_number = $8, medical_history = $9, current_medications = $10, allergies = $11
                 WHERE id = $1",
-            id,
-            gender.to_id(),
-            sexual_orientation.to_id(),
-            birthdate,
-            phone,
-            emergency_contact_name,
-            emergency_contact_phone,
-            insurance_policy_number,
-            medical_history,
-            current_medications,
-            allergies
+            patient.id,
+            patient.gender.to_id(),
+            patient.sexual_orientation.to_id(),
+            patient.birthdate,
+            patient.phone,
+            patient.emergency_contact_name,
+            patient.emergency_contact_phone,
+            patient.insurance_policy_number,
+            patient.medical_history,
+            patient.current_medications,
+            patient.allergies
         )
         .execute(&self.pool)
         .await

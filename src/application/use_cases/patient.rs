@@ -4,46 +4,17 @@ use async_trait::async_trait;
 use tracing::{info, instrument};
 use uuid::Uuid;
 
-use crate::{
-    app_error::AppResult,
-    entities::{gender::Gender, patient::Patient, sexual_orientation::SexualOrientation},
-};
+use crate::{app_error::AppResult, entities::patient::Patient};
 
 #[async_trait]
 pub trait PatientPersistence: Send + Sync {
-    async fn create(
-        &self,
-        user_id: Option<Uuid>,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<chrono::NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()>;
+    async fn create(&self, patient: &Patient) -> AppResult<()>;
 
     async fn read_all(&self) -> AppResult<Vec<Patient>>;
 
     async fn read_single(&self, id: Uuid) -> AppResult<Patient>;
 
-    async fn update(
-        &self,
-        id: Uuid,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<chrono::NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()>;
+    async fn update(&self, patient: &Patient) -> AppResult<()>;
 
     async fn delete(&self, id: Uuid) -> AppResult<()>;
 }
@@ -59,37 +30,10 @@ impl PatientUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn create(
-        &self,
-        user_id: Option<Uuid>,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<chrono::NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()> {
+    pub async fn create(&self, patient: &Patient) -> AppResult<()> {
         info!("Attempting create patient...");
 
-        self.persistence
-            .create(
-                user_id,
-                gender,
-                sexual_orientation,
-                birthdate,
-                phone,
-                emergency_contact_name,
-                emergency_contact_phone,
-                insurance_policy_number,
-                medical_history,
-                current_medications,
-                allergies,
-            )
-            .await?;
+        self.persistence.create(patient).await?;
 
         info!("Patient created.");
 
@@ -107,37 +51,10 @@ impl PatientUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn update(
-        &self,
-        id: Uuid,
-        gender: Gender,
-        sexual_orientation: SexualOrientation,
-        birthdate: Option<chrono::NaiveDate>,
-        phone: &str,
-        emergency_contact_name: Option<String>,
-        emergency_contact_phone: Option<String>,
-        insurance_policy_number: Option<String>,
-        medical_history: Option<String>,
-        current_medications: Option<String>,
-        allergies: Option<String>,
-    ) -> AppResult<()> {
+    pub async fn update(&self, patient: &Patient) -> AppResult<()> {
         info!("Attempting update patient...");
 
-        self.persistence
-            .update(
-                id,
-                gender,
-                sexual_orientation,
-                birthdate,
-                phone,
-                emergency_contact_name,
-                emergency_contact_phone,
-                insurance_policy_number,
-                medical_history,
-                current_medications,
-                allergies,
-            )
-            .await?;
+        self.persistence.update(patient).await?;
 
         info!("Patient updated.");
 
@@ -160,6 +77,11 @@ impl PatientUseCases {
 mod test {
     use async_trait::async_trait;
 
+    use crate::{
+        app_error::AppError,
+        entities::{gender::Gender, sexual_orientation::SexualOrientation},
+    };
+
     use super::*;
 
     #[allow(dead_code)]
@@ -167,20 +89,13 @@ mod test {
 
     #[async_trait]
     impl PatientPersistence for MockPatientPersistence {
-        async fn create(
-            &self,
-            _user_id: Option<Uuid>,
-            _gender: Gender,
-            _sexual_orientation: SexualOrientation,
-            _birthdate: Option<chrono::NaiveDate>,
-            _phone: &str,
-            _emergency_contact_name: Option<String>,
-            _emergency_contact_phone: Option<String>,
-            _insurance_policy_number: Option<String>,
-            _medical_history: Option<String>,
-            _current_medications: Option<String>,
-            _allergies: Option<String>,
-        ) -> AppResult<()> {
+        async fn create(&self, patient: &Patient) -> AppResult<()> {
+            if patient.id.is_some() {
+                return Err(AppError::Internal(
+                    "patient id must be None when creating".into(),
+                ));
+            }
+
             Ok(())
         }
 
@@ -190,7 +105,7 @@ mod test {
 
         async fn read_single(&self, _id: Uuid) -> AppResult<Patient> {
             Ok(Patient {
-                id: Uuid::new_v4(),
+                id: Some(Uuid::new_v4()),
                 user_id: None,
                 gender: Gender::Male,
                 sexual_orientation: SexualOrientation::Straight,
@@ -206,20 +121,9 @@ mod test {
             })
         }
 
-        async fn update(
-            &self,
-            _id: Uuid,
-            _gender: Gender,
-            _sexual_orientation: SexualOrientation,
-            _birthdate: Option<chrono::NaiveDate>,
-            _phone: &str,
-            _emergency_contact_name: Option<String>,
-            _emergency_contact_phone: Option<String>,
-            _insurance_policy_number: Option<String>,
-            _medical_history: Option<String>,
-            _current_medications: Option<String>,
-            _allergies: Option<String>,
-        ) -> AppResult<()> {
+        async fn update(&self, patient: &Patient) -> AppResult<()> {
+            assert!(patient.id.is_some());
+
             Ok(())
         }
 
@@ -233,22 +137,49 @@ mod test {
         let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
 
         let result = use_cases
-            .create(
-                None,
-                Gender::Male,
-                SexualOrientation::Straight,
-                None,
-                "123456789",
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            )
+            .create(&Patient {
+                id: None,
+                user_id: None,
+                gender: Gender::Male,
+                sexual_orientation: SexualOrientation::Straight,
+                birthdate: None,
+                phone: "123456789".to_string(),
+                emergency_contact_name: None,
+                emergency_contact_phone: None,
+                insurance_policy_number: None,
+                medical_history: None,
+                current_medications: None,
+                allergies: None,
+                created_at: None,
+            })
             .await;
 
         assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn create_with_id_fails() {
+        let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
+
+        let result = use_cases
+            .create(&Patient {
+                id: Some(Uuid::new_v4()),
+                user_id: None,
+                gender: Gender::Male,
+                sexual_orientation: SexualOrientation::Straight,
+                birthdate: None,
+                phone: "123456789".to_string(),
+                emergency_contact_name: None,
+                emergency_contact_phone: None,
+                insurance_policy_number: None,
+                medical_history: None,
+                current_medications: None,
+                allergies: None,
+                created_at: None,
+            })
+            .await;
+
+        assert!(result.is_err());
     }
 
     #[tokio::test]
@@ -274,19 +205,21 @@ mod test {
         let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
 
         let result = use_cases
-            .update(
-                Uuid::new_v4(),
-                Gender::Male,
-                SexualOrientation::Straight,
-                None,
-                "123456789",
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            )
+            .update(&Patient {
+                id: Some(Uuid::new_v4()),
+                user_id: None,
+                gender: Gender::Male,
+                sexual_orientation: SexualOrientation::Straight,
+                birthdate: None,
+                phone: "123456789".to_string(),
+                emergency_contact_name: None,
+                emergency_contact_phone: None,
+                insurance_policy_number: None,
+                medical_history: None,
+                current_medications: None,
+                allergies: None,
+                created_at: None,
+            })
             .await;
 
         assert!(result.is_ok());
