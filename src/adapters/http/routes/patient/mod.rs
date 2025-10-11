@@ -47,7 +47,7 @@ struct PatientResponse {
 impl From<Patient> for PatientResponse {
     fn from(patient: Patient) -> Self {
         PatientResponse {
-            id: patient.id,
+            id: patient.id.unwrap(), // This should never panic as this should never be null when responding
             user_id: patient.user_id,
             gender: patient.gender.to_id(),
             sexual_orientation: patient.sexual_orientation.to_id(),

@@ -4,7 +4,7 @@ use crate::entities::{gender::Gender, sexual_orientation::SexualOrientation};
 
 #[derive(Debug)]
 pub struct Patient {
-    pub id: Uuid,
+    pub id: Option<Uuid>, // we option this so we can use the same type for update and create but aside that on_create it should never be None
     pub user_id: Option<Uuid>,
     pub gender: Gender,
     pub sexual_orientation: SexualOrientation,

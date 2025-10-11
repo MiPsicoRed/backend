@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::{AuthUser, Validateable}, app_error::{AppError, AppResult}, entities::{gender::Gender, sexual_orientation::SexualOrientation, user::Role}, use_cases::patient::PatientUseCases
+    adapters::http::routes::{AuthUser, Validateable}, app_error::{AppError, AppResult}, entities::{gender::Gender, patient::Patient, sexual_orientation::SexualOrientation, user::Role}, use_cases::patient::PatientUseCases
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
@@ -72,8 +72,10 @@ pub async fn create_patient(
     .map(|uid| Uuid::parse_str(&uid).map_err(|_| AppError::Internal("Invalid UUID string".into())))
     .transpose()?;
 
+    let patient = Patient { id: None, user_id: user_uuid, gender:  Gender::from_id(payload.gender_id).unwrap_or_default(), sexual_orientation:  SexualOrientation::from_id(payload.sexual_orientation_id).unwrap_or_default(), birthdate: payload.birthdate, phone: payload.phone, emergency_contact_name: payload.emergency_contact_name, emergency_contact_phone: payload.emergency_contact_phone, insurance_policy_number: payload.insurance_policy_number, medical_history: payload.medical_history, current_medications: payload.current_medications, allergies: payload.allergies, created_at: None };
+
     use_cases
-        .create(user_uuid, Gender::from_id(payload.gender_id).unwrap_or_default(), SexualOrientation::from_id(payload.sexual_orientation_id).unwrap_or_default(), payload.birthdate, &payload.phone, payload.emergency_contact_name, payload.emergency_contact_phone, payload.insurance_policy_number, payload.medical_history, payload.current_medications, payload.allergies)
+        .create(&patient)
         .await?;
 
     Ok((
