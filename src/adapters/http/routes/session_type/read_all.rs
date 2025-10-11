@@ -10,14 +10,14 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct ReadAllResponse {
+pub struct SessionTypeReadAllResponse {
     data: Vec<SessionTypeResponse>,
     success: bool,
 }
 
 #[utoipa::path(get, path = "/api/session_type/all", 
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = ReadAllResponse),
+        (status = 200, description = "Data retrieved correctly", body = SessionTypeReadAllResponse),
         (status = 500, description = "Internal server error or database error")
     ),
     security(
@@ -39,6 +39,6 @@ pub async fn read_all_session_types(
 
     Ok((
         StatusCode::OK,
-        Json(ReadAllResponse { success:true, data: session_types.into_iter().map(Into::into).collect() }),
+        Json(SessionTypeReadAllResponse { success:true, data: session_types.into_iter().map(Into::into).collect() }),
     ))
 }

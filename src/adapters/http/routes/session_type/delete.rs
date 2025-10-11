@@ -11,24 +11,24 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct DeletePayload {
+pub struct SessionTypeDeletePayload {
     session_type_id: String,
 }
 
-impl Validateable for DeletePayload {
+impl Validateable for SessionTypeDeletePayload {
     fn valid(&self) -> bool {
         !self.session_type_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct DeleteResponse {
+pub struct SessionTypeDeleteResponse {
     success: bool,
 }
 
 #[utoipa::path(delete, path = "/api/session_type/delete", 
     responses( 
-        (status = 200, description = "Deleted", body = DeleteResponse),
+        (status = 200, description = "Deleted", body = SessionTypeDeleteResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -42,7 +42,7 @@ pub struct DeleteResponse {
 #[instrument(skip(use_cases))]
 pub async fn delete_session_type(
     State(use_cases): State<Arc<SessionTypeUseCases>>,
-    Json(payload): Json<DeletePayload>,
+    Json(payload): Json<SessionTypeDeletePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Delete session type called");
 
@@ -58,6 +58,6 @@ pub async fn delete_session_type(
 
     Ok((
         StatusCode::OK,
-        Json(DeleteResponse { success:true }),
+        Json(SessionTypeDeleteResponse { success:true }),
     ))
 }

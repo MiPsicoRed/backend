@@ -11,25 +11,25 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct UpdatePayload {
+pub struct SessionTypeUpdatePayload {
     id: String,
     name: String,
 }
 
-impl Validateable for UpdatePayload {
+impl Validateable for SessionTypeUpdatePayload {
     fn valid(&self) -> bool {
         !self.name.is_empty() && !self.id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct UpdateResponse {
+pub struct SessionTypeUpdateResponse {
     success: bool,
 }
 
 #[utoipa::path(patch, path = "/api/session_type/update", 
     responses( 
-        (status = 200, description = "Updated", body = UpdateResponse),
+        (status = 200, description = "Updated", body = SessionTypeUpdateResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -43,7 +43,7 @@ pub struct UpdateResponse {
 #[instrument(skip(use_cases))]
 pub async fn update_session_type(
     State(use_cases): State<Arc<SessionTypeUseCases>>,
-    Json(payload): Json<UpdatePayload>,
+    Json(payload): Json<SessionTypeUpdatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Update session type called");
 
@@ -59,6 +59,6 @@ pub async fn update_session_type(
 
     Ok((
         StatusCode::CREATED,
-        Json(UpdateResponse { success:true }),
+        Json(SessionTypeUpdateResponse { success:true }),
     ))
 }

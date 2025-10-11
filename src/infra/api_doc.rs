@@ -27,6 +27,12 @@ use utoipa::{
         routes::session_type::read_all::read_all_session_types,
         routes::session_type::read_single::read_single_session_type,
         routes::session_type::update::update_session_type,
+        // sessions
+        routes::session::create::create_session,
+        routes::session::delete::delete_session,
+        routes::session::read_all::read_all_sessions,
+        routes::session::read_single::read_single_session,
+        routes::session::update::update_session,
     ),
     components(
         schemas(
@@ -39,17 +45,23 @@ use utoipa::{
             routes::user_token::verify::VerifyResponse,
             routes::user_token::validate::ValidateResponse,
             // patient
-            routes::patient::create::CreateResponse,
-            routes::patient::delete::DeleteResponse,
-            routes::patient::read_all::ReadAllResponse,
-            routes::patient::read_single::ReadSingleResponse,
-            routes::patient::update::UpdateResponse,
+            routes::patient::create::PatientCreateResponse,
+            routes::patient::delete::PatientDeleteResponse,
+            routes::patient::read_all::PatientReadAllResponse,
+            routes::patient::read_single::PatientReadSingleResponse,
+            routes::patient::update::PatientUpdateResponse,
             // session types
-            routes::session_type::create::CreateResponse,
-            routes::session_type::delete::DeleteResponse,
-            routes::session_type::read_all::ReadAllResponse,
-            routes::session_type::read_single::ReadSingleResponse,
-            routes::session_type::update::UpdateResponse,
+            routes::session_type::create::SessionTypeCreateResponse,
+            routes::session_type::delete::SessionTypeDeleteResponse,
+            routes::session_type::read_all::SessionTypeReadAllResponse,
+            routes::session_type::read_single::SessionTypeReadSingleResponse,
+            routes::session_type::update::SessionTypeUpdateResponse,
+            // sessions
+            routes::session::create::SessionCreateResponse,
+            routes::session::delete::SessionDeleteResponse,
+            routes::session::read_all::SessionReadAllResponse,
+            routes::session::read_single::SessionReadSingleResponse,
+            routes::session::update::SessionUpdateResponse,
         )
     ),
     modifiers(&SecurityAddon),
@@ -58,6 +70,7 @@ use utoipa::{
         (name = "User Token", description = "User Token endpoints"),
         (name = "Patient", description = "Patient endpoints"),
         (name = "Session Type", description = "Session Type endpoints"),
+        (name = "Session", description = "Session endpoints"),
     )
 )]
 pub struct ApiDoc;

@@ -11,27 +11,27 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
-pub struct ReadSingleQuery {
+pub struct SessionTypeReadSingleQuery {
     #[param(example = "insert-session-type-uuid")]
     session_type_id: String,
 }
 
-impl Validateable for ReadSingleQuery {
+impl Validateable for SessionTypeReadSingleQuery {
     fn valid(&self) -> bool {
         !self.session_type_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct ReadSingleResponse {
+pub struct SessionTypeReadSingleResponse {
     data: SessionTypeResponse,
     success: bool,
 }
 
 #[utoipa::path(get, path = "/api/session_type/single", 
-    params(ReadSingleQuery),
+    params(SessionTypeReadSingleQuery),
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = ReadSingleResponse),
+        (status = 200, description = "Data retrieved correctly", body = SessionTypeReadSingleResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -45,7 +45,7 @@ pub struct ReadSingleResponse {
 #[instrument(skip(use_cases))]
 pub async fn read_single_session_type(
     State(use_cases): State<Arc<SessionTypeUseCases>>,
-    Query(params): Query<ReadSingleQuery>,
+    Query(params): Query<SessionTypeReadSingleQuery>,
 ) -> AppResult<impl IntoResponse> {
     info!("Read single session type called");
 
@@ -61,6 +61,6 @@ pub async fn read_single_session_type(
 
     Ok((
         StatusCode::OK,
-        Json(ReadSingleResponse { success:true , data: session_type.into()}),
+        Json(SessionTypeReadSingleResponse { success:true , data: session_type.into()}),
     ))
 }

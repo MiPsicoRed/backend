@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct UpdatePayload {
+pub struct PatientUpdatePayload {
     id: String,
     gender_id: i32,
     sexual_orientation_id: i32,
@@ -25,20 +25,20 @@ pub struct UpdatePayload {
     allergies: Option<String>,
 }
 
-impl Validateable for UpdatePayload {
+impl Validateable for PatientUpdatePayload {
     fn valid(&self) -> bool {
         self.birthdate.is_some() && !self.phone.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct UpdateResponse {
+pub struct PatientUpdateResponse {
     success: bool,
 }
 
 #[utoipa::path(patch, path = "/api/patient/update", 
     responses( 
-        (status = 200, description = "Updated", body = UpdateResponse),
+        (status = 200, description = "Updated", body = PatientUpdateResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -52,7 +52,7 @@ pub struct UpdateResponse {
 #[instrument(skip(use_cases))]
 pub async fn update_patient(
     State(use_cases): State<Arc<PatientUseCases>>,
-    Json(payload): Json<UpdatePayload>,
+    Json(payload): Json<PatientUpdatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Update patient called");
 
@@ -67,7 +67,7 @@ pub async fn update_patient(
         .await?;
 
     Ok((
-        StatusCode::CREATED,
-        Json(UpdateResponse { success:true }),
+        StatusCode::OK,
+        Json(PatientUpdateResponse { success:true }),
     ))
 }

@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct CreatePayload {
+pub struct PatientCreatePayload {
     user_id: Option<String>,
     gender_id: i32,
     sexual_orientation_id: i32,
@@ -25,20 +25,20 @@ pub struct CreatePayload {
     allergies: Option<String>,
 }
 
-impl Validateable for CreatePayload {
+impl Validateable for PatientCreatePayload {
     fn valid(&self) -> bool {
         self.birthdate.is_some() && !self.phone.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct CreateResponse {
+pub struct PatientCreateResponse {
     success: bool,
 }
 
 #[utoipa::path(post, path = "/api/patient/create", 
     responses( 
-        (status = 201, description = "Created", body = CreateResponse),
+        (status = 201, description = "Created", body = PatientCreateResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -53,7 +53,7 @@ pub struct CreateResponse {
 pub async fn create_patient(
     Extension(auth_user): Extension<AuthUser>,
     State(use_cases): State<Arc<PatientUseCases>>,
-    Json(payload): Json<CreatePayload>,
+    Json(payload): Json<PatientCreatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Create patient called");
     let is_authorized = authorized(&auth_user, &payload);
@@ -78,11 +78,11 @@ pub async fn create_patient(
 
     Ok((
         StatusCode::CREATED,
-        Json(CreateResponse {success:true }),
+        Json(PatientCreateResponse { success:true }),
     ))
 }
 
-fn authorized(auth_user: &AuthUser, payload: &CreatePayload) -> bool {
+fn authorized(auth_user: &AuthUser, payload: &PatientCreatePayload) -> bool {
     let requesting_role = Role::from_id(auth_user.role_id).unwrap_or_default();
     
     // Check authorization

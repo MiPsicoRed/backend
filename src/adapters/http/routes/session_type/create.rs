@@ -10,24 +10,24 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct CreatePayload {
+pub struct SessionTypeCreatePayload {
     name: String
 }
 
-impl Validateable for CreatePayload {
+impl Validateable for SessionTypeCreatePayload {
     fn valid(&self) -> bool {
         !self.name.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct CreateResponse {
+pub struct SessionTypeCreateResponse {
     success: bool,
 }
 
 #[utoipa::path(post, path = "/api/session_type/create", 
     responses( 
-        (status = 201, description = "Created", body = CreateResponse),
+        (status = 201, description = "Created", body = SessionTypeCreateResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -42,7 +42,7 @@ pub struct CreateResponse {
 pub async fn create_session_type(
     Extension(auth_user): Extension<AuthUser>,
     State(use_cases): State<Arc<SessionTypeUseCases>>,
-    Json(payload): Json<CreatePayload>,
+    Json(payload): Json<SessionTypeCreatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Create session type called");
 
@@ -56,6 +56,6 @@ pub async fn create_session_type(
 
     Ok((
         StatusCode::CREATED,
-        Json(CreateResponse { success:true }),
+        Json(SessionTypeCreateResponse { success:true }),
     ))
 }

@@ -11,24 +11,24 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct DeletePayload {
+pub struct PatientDeletePayload {
     patient_id: String,
 }
 
-impl Validateable for DeletePayload {
+impl Validateable for PatientDeletePayload {
     fn valid(&self) -> bool {
         !self.patient_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct DeleteResponse {
+pub struct PatientDeleteResponse {
     success: bool,
 }
 
 #[utoipa::path(delete, path = "/api/patient/delete", 
     responses( 
-        (status = 200, description = "Deleted", body = DeleteResponse),
+        (status = 200, description = "Deleted", body = PatientDeleteResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -42,7 +42,7 @@ pub struct DeleteResponse {
 #[instrument(skip(use_cases))]
 pub async fn delete_patient(
     State(use_cases): State<Arc<PatientUseCases>>,
-    Json(payload): Json<DeletePayload>,
+    Json(payload): Json<PatientDeletePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Delete patient called");
 
@@ -58,6 +58,6 @@ pub async fn delete_patient(
 
     Ok((
         StatusCode::OK,
-        Json(DeleteResponse { success:true }),
+        Json(PatientDeleteResponse { success:true }),
     ))
 }
