@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO session_types (id, session_type_name) \n                    VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c630eb2db4c52bc0d0f5adc089411e680fb71cfe85249e47edb7af6684dd41df"
+}

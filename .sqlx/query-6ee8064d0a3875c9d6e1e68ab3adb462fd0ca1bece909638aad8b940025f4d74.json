@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE session_types \n                SET session_type_name = $2\n                WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6ee8064d0a3875c9d6e1e68ab3adb462fd0ca1bece909638aad8b940025f4d74"
+}
