@@ -21,6 +21,12 @@ use utoipa::{
         routes::patient::read_all::read_all_patients,
         routes::patient::read_single::read_single_patient,
         routes::patient::update::update_patient,
+        // session types
+        routes::session_type::create::create_session_type,
+        routes::session_type::delete::delete_session_type,
+        routes::session_type::read_all::read_all_session_types,
+        routes::session_type::read_single::read_single_session_type,
+        routes::session_type::update::update_session_type,
     ),
     components(
         schemas(
@@ -38,6 +44,12 @@ use utoipa::{
             routes::patient::read_all::ReadAllResponse,
             routes::patient::read_single::ReadSingleResponse,
             routes::patient::update::UpdateResponse,
+            // session types
+            routes::session_type::create::CreateResponse,
+            routes::session_type::delete::DeleteResponse,
+            routes::session_type::read_all::ReadAllResponse,
+            routes::session_type::read_single::ReadSingleResponse,
+            routes::session_type::update::UpdateResponse,
         )
     ),
     modifiers(&SecurityAddon),
@@ -45,6 +57,7 @@ use utoipa::{
         (name = "User", description = "User endpoints"),
         (name = "User Token", description = "User Token endpoints"),
         (name = "Patient", description = "Patient endpoints"),
+        (name = "Session Type", description = "Session Type endpoints"),
     )
 )]
 pub struct ApiDoc;

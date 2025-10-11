@@ -1,4 +1,5 @@
 pub mod patient;
+pub mod session_type;
 pub mod user;
 pub mod user_token;
 
@@ -124,4 +125,5 @@ pub fn router() -> Router<AppState> {
         .nest("/user", user::router())
         .nest("/user_token", user_token::router())
         .nest("/patient", patient::router())
+        .nest("/session_type", session_type::router())
 }
