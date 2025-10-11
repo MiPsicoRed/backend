@@ -38,7 +38,7 @@ impl From<User> for UserResponse {
             usersurname: user.usersurname,
             email: user.email,
             verified: user.verified,
-            password_hash: user.password_hash,
+            password_hash: String::new(), // just in case, never map the password hash to a response
             created_at: user.created_at,
         }
     }
