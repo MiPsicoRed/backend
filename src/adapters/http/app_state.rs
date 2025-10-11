@@ -5,8 +5,8 @@ use axum::extract::FromRef;
 use crate::{
     infra::config::AppConfig,
     use_cases::{
-        patient::PatientUseCases, session_type::SessionTypeUseCases, user::UserUseCases,
-        user_token::UserTokenUseCases,
+        patient::PatientUseCases, session::SessionUseCases, session_type::SessionTypeUseCases,
+        user::UserUseCases, user_token::UserTokenUseCases,
     },
 };
 
@@ -17,6 +17,7 @@ pub struct AppState {
     pub user_token_use_cases: Arc<UserTokenUseCases>,
     pub patient_use_cases: Arc<PatientUseCases>,
     pub session_type_use_cases: Arc<SessionTypeUseCases>,
+    pub session_use_cases: Arc<SessionUseCases>,
 }
 
 impl FromRef<AppState> for Arc<UserUseCases> {
@@ -40,5 +41,11 @@ impl FromRef<AppState> for Arc<PatientUseCases> {
 impl FromRef<AppState> for Arc<SessionTypeUseCases> {
     fn from_ref(app_state: &AppState) -> Self {
         app_state.session_type_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<SessionUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.session_use_cases.clone()
     }
 }

@@ -3,15 +3,16 @@ use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct Session {
-    pub id: Uuid,
-    pub patient_id: Option<Uuid>,
-    pub professional_id: Option<Uuid>,
+    pub id: Option<Uuid>, // we option this so we can use the same type for update and create but aside that on_create it should never be None
+    pub patient_id: Uuid,
+    pub professional_id: Uuid,
     pub session_type_id: Option<Uuid>,
     pub session_status: SessionStatus,
-    pub session_datetime: Option<chrono::NaiveDateTime>,
-    pub videocall_url: String,
-    pub notes: String,
-    pub duration: i32,
+    pub session_date: Option<chrono::NaiveDateTime>,
+    pub videocall_url: Option<String>,
+    pub notes: Option<String>,
+    pub completed: bool,
+    pub session_duration: Option<i32>,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 
