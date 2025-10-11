@@ -79,7 +79,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_admin()),
         )
-        .route("/single", get(read_single_patient)) // Only auth + mail verified required
+        .route("/single", get(read_single_patient)) // Required: Verified Email + Admin/Professional Role or requesting user_id
         .route("/update", patch(update_patient)) // Only auth + mail verified required
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
