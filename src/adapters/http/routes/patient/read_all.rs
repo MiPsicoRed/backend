@@ -10,14 +10,14 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct ReadAllResponse {
+pub struct PatientReadAllResponse {
     data: Vec<PatientResponse>,
     success: bool,
 }
 
 #[utoipa::path(get, path = "/api/patient/all", 
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = ReadAllResponse),
+        (status = 200, description = "Data retrieved correctly", body = PatientReadAllResponse),
         (status = 500, description = "Internal server error or database error")
     ),
     security(
@@ -39,6 +39,6 @@ pub async fn read_all_patients(
 
     Ok((
         StatusCode::OK,
-        Json(ReadAllResponse { success:true, data: patients.into_iter().map(Into::into).collect() }),
+        Json(PatientReadAllResponse { success:true, data: patients.into_iter().map(Into::into).collect() }),
     ))
 }

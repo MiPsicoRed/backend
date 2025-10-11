@@ -11,27 +11,27 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
-pub struct ReadSingleQuery {
+pub struct PatientReadSingleQuery {
     #[param(example = "insert-patient-uuid")]
     patient_id: String,
 }
 
-impl Validateable for ReadSingleQuery {
+impl Validateable for PatientReadSingleQuery {
     fn valid(&self) -> bool {
         !self.patient_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct ReadSingleResponse {
+pub struct PatientReadSingleResponse {
     data: PatientResponse,
     success: bool,
 }
 
 #[utoipa::path(get, path = "/api/patient/single", 
-    params(ReadSingleQuery),
+    params(PatientReadSingleQuery),
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = ReadSingleResponse),
+        (status = 200, description = "Data retrieved correctly", body = PatientReadSingleResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -45,7 +45,7 @@ pub struct ReadSingleResponse {
 #[instrument(skip(use_cases))]
 pub async fn read_single_patient(
     State(use_cases): State<Arc<PatientUseCases>>,
-    Query(params): Query<ReadSingleQuery>,
+    Query(params): Query<PatientReadSingleQuery>,
 ) -> AppResult<impl IntoResponse> {
     info!("Read single patient called");
 
@@ -61,6 +61,6 @@ pub async fn read_single_patient(
 
     Ok((
         StatusCode::OK,
-        Json(ReadSingleResponse { success:true , data: patient.into()}),
+        Json(PatientReadSingleResponse { success:true , data: patient.into()}),
     ))
 }
