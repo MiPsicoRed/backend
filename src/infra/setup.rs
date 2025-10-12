@@ -4,8 +4,10 @@ use crate::{
         argon2_password_hasher, config::AppConfig, email_service, jwt_service, postgres_persistence,
     },
     use_cases::{
-        patient::PatientUseCases, session::SessionUseCases, session_type::SessionTypeUseCases,
-        user::UserUseCases, user_token::UserTokenUseCases,
+        patient::PatientUseCases, professional::ProfessionalUseCases,
+        professional_language::ProfessionalLanguageUseCases,
+        professional_specialization::ProfessionalSpecializationUseCases, session::SessionUseCases,
+        session_type::SessionTypeUseCases, user::UserUseCases, user_token::UserTokenUseCases,
     },
 };
 use std::fs::File;
@@ -35,6 +37,13 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 
     let session_use_cases = SessionUseCases::new(postgres_arc.clone());
 
+    let professional_use_cases = ProfessionalUseCases::new(postgres_arc.clone());
+
+    let professional_languages_use_cases = ProfessionalLanguageUseCases::new(postgres_arc.clone());
+
+    let professional_specializations_use_cases =
+        ProfessionalSpecializationUseCases::new(postgres_arc.clone());
+
     Ok(AppState {
         config,
         user_use_cases: Arc::new(user_use_cases),
@@ -42,6 +51,9 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         patient_use_cases: Arc::new(patient_use_cases),
         session_type_use_cases: Arc::new(session_type_use_cases),
         session_use_cases: Arc::new(session_use_cases),
+        professional_use_cases: Arc::new(professional_use_cases),
+        professional_languages_use_cases: Arc::new(professional_languages_use_cases),
+        professional_specializations_use_cases: Arc::new(professional_specializations_use_cases),
     })
 }
 

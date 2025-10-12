@@ -1,6 +1,9 @@
 pub mod email;
 pub mod gender;
 pub mod patient;
+pub mod professional;
+pub mod professional_language;
+pub mod professional_specialization;
 pub mod session;
 pub mod session_type;
 pub mod sexual_orientation;

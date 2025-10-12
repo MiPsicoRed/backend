@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO professionals_languages (id, professional_id, p_language) \n                    VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bd53254fce32a3dd9295d217a1f4e3ad29fbe0f1e1418bb1ffadb7552b558cf9"
+}
