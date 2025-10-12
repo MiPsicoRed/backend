@@ -80,7 +80,12 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_admin()),
         )
-        .route("/single", get(read_single_session)) // Required: Verified Email + Admin/Professional Role or requesting user_id
+        .route(
+            "/single", // Required: Verified Email + Admin/Professional Role
+            get(read_single_session)
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_professional_or_admin()),
+        )
         .route(
             "/update", // Required: Verified Email + Admin/Professional Role
             patch(update_session)

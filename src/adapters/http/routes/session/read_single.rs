@@ -1,21 +1,19 @@
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Extension, Json};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::{session::SessionResponse, AuthUser, Validateable}, app_error::{AppError, AppResult}, entities::user::Role, use_cases::session::SessionUseCases
+    adapters::http::routes::{session::SessionResponse, Validateable}, app_error::{AppError, AppResult}, use_cases::session::SessionUseCases
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
 pub struct SessionReadSingleQuery {
     #[param(example = "insert-session-uuid")]
     session_id: String,
-    #[param(example = "insert-user-uuid(optional)")]
-    user_id: Option<String>,
 }
 
 impl Validateable for SessionReadSingleQuery {
@@ -42,22 +40,14 @@ pub struct SessionReadSingleResponse {
     ),
     tag = "Session",
     summary = "Retrieves data of a single session",
-    description = "\n\n**Required:**  Verified Email + Admin/Professional Role or requesting user_id, user_id is not mandatory if admin/professional role"
+    description = "\n\n**Required:**  Verified Email + Admin/Professional Role"
 )]
 #[instrument(skip(use_cases))]
 pub async fn read_single_session(
-    Extension(auth_user): Extension<AuthUser>,
     State(use_cases): State<Arc<SessionUseCases>>,
     Query(params): Query<SessionReadSingleQuery>,
 ) -> AppResult<impl IntoResponse> {
     info!("Read single session called");
-    let is_authorized = authorized(&auth_user, &params);
-    if !is_authorized {
-        return Err(AppError::Unauthorized(
-            String::from("You don't have permission for this endpoint")
-        ));
-    }
-
     if !params.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
@@ -72,19 +62,4 @@ pub async fn read_single_session(
         StatusCode::OK,
         Json(SessionReadSingleResponse { success:true , data: session.into()}),
     ))
-}
-
-fn authorized(auth_user: &AuthUser, query: &SessionReadSingleQuery) -> bool {
-    let requesting_role = Role::from_id(auth_user.role_id).unwrap_or_default();
-    
-    // Check authorization
-    match requesting_role {
-        Role::Admin | Role::Professional => true,
-        Role::Patient => {
-            query.user_id
-                .as_ref()
-                .map(|id| id == &auth_user.user_id)
-                .unwrap_or(false) // Don't allow if no user_id specified
-        }
-    }
 }
