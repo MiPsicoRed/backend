@@ -1,3 +1,4 @@
+pub mod blog_post;
 pub mod patient;
 pub mod professional;
 pub mod professional_language;
@@ -137,4 +138,5 @@ pub fn router() -> Router<AppState> {
             "/professional_specialization",
             professional_specialization::router(),
         )
+        .nest("/blog_post", blog_post::router())
 }

@@ -51,6 +51,12 @@ use utoipa::{
         routes::professional_specialization::read_all::read_all_professional_specializations,
         routes::professional_specialization::read_single::read_single_professional_specialization,
         routes::professional_specialization::update::update_professional_specialization,
+        // blog posts
+        routes::blog_post::create::create_blog_post,
+        routes::blog_post::delete::delete_blog_post,
+        routes::blog_post::read_all::read_all_blog_posts,
+        routes::blog_post::read_single::read_single_blog_post,
+        routes::blog_post::update::update_blog_post,
     ),
     components(
         schemas(
@@ -98,6 +104,12 @@ use utoipa::{
             routes::professional_specialization::read_all::ProfessionalSpecializationReadAllResponse,
             routes::professional_specialization::read_single::ProfessionalSpecializationReadSingleResponse,
             routes::professional_specialization::update::ProfessionalSpecializationUpdateResponse,
+            // blog posts
+            routes::blog_post::create::BlogPostCreateResponse,
+            routes::blog_post::delete::BlogPostDeleteResponse,
+            routes::blog_post::read_all::BlogPostReadAllResponse,
+            routes::blog_post::read_single::BlogPostReadSingleResponse,
+            routes::blog_post::update::BlogPostUpdateResponse,
         )
     ),
     modifiers(&SecurityAddon),
@@ -110,6 +122,7 @@ use utoipa::{
         (name = "Professional", description = "Professional endpoints"),
         (name = "Professional Language", description = "Professional languages endpoints"),
         (name = "Professional Specialization", description = "Professional specializations endpoints"),
+        (name = "Blog Post", description = "Blog Post endpoints"),
     )
 )]
 pub struct ApiDoc;

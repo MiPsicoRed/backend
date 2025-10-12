@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE blog_posts \n                SET blog_post_status_id = $2, title = $3, slug = $4, summary = $5, content = $6, tags = $7, featured_image = $8, reading_time_minutes = $9, view_count = $10\n                WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Text",
+        "TextArray",
+        "Text",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fe82892a0a09fd3fb1935a0534edb35cb1789158705a66119cd2400c2074e97d"
+}
