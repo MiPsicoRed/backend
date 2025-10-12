@@ -26,7 +26,7 @@ trait Validateable {
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub user_id: String,
-    pub name: String,
+    pub fullname: String,
     pub role_id: i32,
     pub verified: bool,
 }
@@ -35,7 +35,7 @@ impl From<Claims> for AuthUser {
     fn from(value: Claims) -> Self {
         Self {
             user_id: value.uuid,
-            name: value.name,
+            fullname: value.fullname,
             role_id: value.role,
             verified: value.verified,
         }

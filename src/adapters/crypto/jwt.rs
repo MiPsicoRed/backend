@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Claims {
     pub uuid: String, // We need to pub this to access it from the middleware, since both are adapters, is that okay?
-    pub name: String,
+    pub fullname: String,
     pub role: i32,
     pub verified: bool,
     exp: usize,
@@ -35,7 +35,7 @@ impl UserJwtService for JwtService {
             &Header::default(),
             &Claims {
                 uuid: user.id.to_string(),
-                name: user.username.clone(),
+                fullname: format!("{} {}", &user.username, &user.usersurname),
                 role: user.role.to_id(),
                 verified: user.verified.unwrap_or(false),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
