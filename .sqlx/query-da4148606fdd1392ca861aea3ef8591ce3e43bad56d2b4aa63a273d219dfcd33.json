@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE professionals \n                SET gender_id = $2, birthdate = $3, license_number = $4, bio = $5, education = $6, experience_years = $7, hourly_rate = $8, accepts_insurance = $9\n                WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Date",
+        "Varchar",
+        "Text",
+        "Text",
+        "Int4",
+        "Float4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "da4148606fdd1392ca861aea3ef8591ce3e43bad56d2b4aa63a273d219dfcd33"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE professionals_specializations \n                SET s_name = $2\n                WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3789ade03e96671275a5db354e13adeebd283228581d40a48bfc0386305aaff3"
+}

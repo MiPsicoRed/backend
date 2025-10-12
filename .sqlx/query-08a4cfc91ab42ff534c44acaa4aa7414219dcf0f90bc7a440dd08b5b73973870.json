@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO professionals (id, user_id, gender_id, birthdate, license_number, bio, education, experience_years, hourly_rate, accepts_insurance) \n                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Date",
+        "Varchar",
+        "Text",
+        "Text",
+        "Int4",
+        "Float4",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "08a4cfc91ab42ff534c44acaa4aa7414219dcf0f90bc7a440dd08b5b73973870"
+}
