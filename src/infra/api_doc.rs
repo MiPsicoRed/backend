@@ -39,6 +39,18 @@ use utoipa::{
         routes::professional::read_all::read_all_professionals,
         routes::professional::read_single::read_single_professional,
         routes::professional::update::update_professional,
+        // professional languages
+        routes::professional_language::create::create_professional_language,
+        routes::professional_language::delete::delete_professional_language,
+        routes::professional_language::read_all::read_all_professional_languages,
+        routes::professional_language::read_single::read_single_professional_language,
+        routes::professional_language::update::update_professional_language,
+        // professional specializations
+        routes::professional_specialization::create::create_professional_specialization,
+        routes::professional_specialization::delete::delete_professional_specialization,
+        routes::professional_specialization::read_all::read_all_professional_specializations,
+        routes::professional_specialization::read_single::read_single_professional_specialization,
+        routes::professional_specialization::update::update_professional_specialization,
     ),
     components(
         schemas(
@@ -74,6 +86,18 @@ use utoipa::{
             routes::professional::read_all::ProfessionalReadAllResponse,
             routes::professional::read_single::ProfessionalReadSingleResponse,
             routes::professional::update::ProfessionalUpdateResponse,
+            // professional languages
+            routes::professional_language::create::ProfessionalLanguageCreateResponse,
+            routes::professional_language::delete::ProfessionalLanguageDeleteResponse,
+            routes::professional_language::read_all::ProfessionalLanguageReadAllResponse,
+            routes::professional_language::read_single::ProfessionalLanguageReadSingleResponse,
+            routes::professional_language::update::ProfessionalLanguageUpdateResponse,
+            // professional specializations
+            routes::professional_specialization::create::ProfessionalSpecializationCreateResponse,
+            routes::professional_specialization::delete::ProfessionalSpecializationDeleteResponse,
+            routes::professional_specialization::read_all::ProfessionalSpecializationReadAllResponse,
+            routes::professional_specialization::read_single::ProfessionalSpecializationReadSingleResponse,
+            routes::professional_specialization::update::ProfessionalSpecializationUpdateResponse,
         )
     ),
     modifiers(&SecurityAddon),
@@ -84,6 +108,8 @@ use utoipa::{
         (name = "Session Type", description = "Session Type endpoints"),
         (name = "Session", description = "Session endpoints"),
         (name = "Professional", description = "Professional endpoints"),
+        (name = "Professional Language", description = "Professional languages endpoints"),
+        (name = "Professional Specialization", description = "Professional specializations endpoints"),
     )
 )]
 pub struct ApiDoc;

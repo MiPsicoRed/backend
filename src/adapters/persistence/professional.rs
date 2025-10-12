@@ -48,18 +48,19 @@ impl ProfessionalPersistence for PostgresPersistence {
     async fn create(&self, professional: &Professional) -> AppResult<()> {
         let uuid = Uuid::new_v4();
 
-        if let Some(uid) = professional.user_id {
-            let exists =
-                sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", uid)
-                    .fetch_one(&self.pool)
-                    .await
-                    .map_err(AppError::Database)?
-                    .unwrap_or(false);
+        // this is not needed since in professionals user_id is a proper foreign constraint, not as in patients
+        // if let Some(uid) = professional.user_id {
+        //     let exists =
+        //         sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", uid)
+        //             .fetch_one(&self.pool)
+        //             .await
+        //             .map_err(AppError::Database)?
+        //             .unwrap_or(false);
 
-            if !exists {
-                return Err(AppError::Internal(String::from("User does not exist")));
-            }
-        }
+        //     if !exists {
+        //         return Err(AppError::Internal(String::from("User does not exist")));
+        //     }
+        // }
 
         sqlx::query!(
                 "INSERT INTO professionals (id, user_id, gender_id, birthdate, license_number, bio, education, experience_years, hourly_rate, accepts_insurance) 

@@ -3,6 +3,8 @@ use sqlx::PgPool;
 pub mod email;
 pub mod patient;
 pub mod professional;
+pub mod professional_language;
+pub mod professional_specialization;
 pub mod session;
 pub mod session_type;
 pub mod user;

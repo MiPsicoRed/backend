@@ -5,7 +5,9 @@ use axum::extract::FromRef;
 use crate::{
     infra::config::AppConfig,
     use_cases::{
-        patient::PatientUseCases, professional::ProfessionalUseCases, session::SessionUseCases,
+        patient::PatientUseCases, professional::ProfessionalUseCases,
+        professional_language::ProfessionalLanguageUseCases,
+        professional_specialization::ProfessionalSpecializationUseCases, session::SessionUseCases,
         session_type::SessionTypeUseCases, user::UserUseCases, user_token::UserTokenUseCases,
     },
 };
@@ -19,6 +21,8 @@ pub struct AppState {
     pub session_type_use_cases: Arc<SessionTypeUseCases>,
     pub session_use_cases: Arc<SessionUseCases>,
     pub professional_use_cases: Arc<ProfessionalUseCases>,
+    pub professional_languages_use_cases: Arc<ProfessionalLanguageUseCases>,
+    pub professional_specializations_use_cases: Arc<ProfessionalSpecializationUseCases>,
 }
 
 impl FromRef<AppState> for Arc<UserUseCases> {
@@ -54,5 +58,17 @@ impl FromRef<AppState> for Arc<SessionUseCases> {
 impl FromRef<AppState> for Arc<ProfessionalUseCases> {
     fn from_ref(app_state: &AppState) -> Self {
         app_state.professional_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<ProfessionalLanguageUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.professional_languages_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<ProfessionalSpecializationUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.professional_specializations_use_cases.clone()
     }
 }

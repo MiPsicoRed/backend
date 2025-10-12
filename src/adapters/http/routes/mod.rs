@@ -1,5 +1,7 @@
 pub mod patient;
 pub mod professional;
+pub mod professional_language;
+pub mod professional_specialization;
 pub mod session;
 pub mod session_type;
 pub mod user;
@@ -129,4 +131,10 @@ pub fn router() -> Router<AppState> {
         .nest("/patient", patient::router())
         .nest("/session_type", session_type::router())
         .nest("/session", session::router())
+        .nest("/professional", professional::router())
+        .nest("/professional_language", professional_language::router())
+        .nest(
+            "/professional_specialization",
+            professional_specialization::router(),
+        )
 }
