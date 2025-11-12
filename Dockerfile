@@ -32,8 +32,8 @@ WORKDIR /app
 # Copy the binary from builder
 COPY --from=builder /app/target/release/mipsicored-backend /app/mipsicored-backend
 
-# Copy migrations (if we needed to run them at runtime)
-# COPY migrations ./migrations
+# Copy migrations to run them at runtime
+COPY migrations ./migrations
 
 # Set environment variables (MUST be overridden at runtime, at least some of them)
 ENV RUST_LOG="mipsicored_backend=debug,tower_http=debug,sqlx=warn"

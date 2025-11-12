@@ -12,5 +12,10 @@ pub async fn init_db() -> anyhow::Result<PgPool> {
         .await?;
 
     info!("Connected to database!");
+
+    sqlx::migrate!("./migrations").run(&pool).await?;
+
+    info!("Migrations run successfully");
+
     Ok(pool)
 }

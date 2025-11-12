@@ -18,6 +18,7 @@ pub mod setup;
 pub async fn postgres_persistence() -> anyhow::Result<PostgresPersistence> {
     let pool = init_db().await?;
     let persistence = PostgresPersistence::new(pool);
+
     Ok(persistence)
 }
 
