@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users (id, role_id, username, usersurname, email, password_hash) \n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING id, role_id as role, username, usersurname, email, verified, password_hash, created_at",
+  "query": "SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, ''::text as \"password_hash!\", created_at\n                FROM users",
   "describe": {
     "columns": [
       {
@@ -35,24 +35,22 @@
       },
       {
         "ordinal": 6,
-        "name": "password_hash",
-        "type_info": "Varchar"
+        "name": "needs_onboarding",
+        "type_info": "Bool"
       },
       {
         "ordinal": 7,
+        "name": "password_hash!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
         "name": "created_at",
         "type_info": "Timestamp"
       }
     ],
     "parameters": {
-      "Left": [
-        "Uuid",
-        "Int4",
-        "Varchar",
-        "Varchar",
-        "Varchar",
-        "Varchar"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -61,9 +59,10 @@
       false,
       false,
       true,
-      false,
+      true,
+      null,
       true
     ]
   },
-  "hash": "fe13287b28d34b757eb7573fa024eb8c0cf1237d5cc5eaff71fcc79f332155a7"
+  "hash": "da210dbaac94e198cc34aa605b143690e48d5f9a054fb921d7a156251957ca5a"
 }

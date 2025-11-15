@@ -16,6 +16,7 @@ pub struct Claims {
     pub fullname: String,
     pub role: i32,
     pub verified: bool,
+    pub needs_onboarding: bool,
     exp: usize,
 }
 
@@ -38,6 +39,7 @@ impl UserJwtService for JwtService {
                 fullname: format!("{} {}", &user.username, &user.usersurname),
                 role: user.role.to_id(),
                 verified: user.verified.unwrap_or(false),
+                needs_onboarding: user.needs_onboarding.unwrap_or(true),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
             },
             &EncodingKey::from_secret(self.config.jwt_secret.as_bytes()),
