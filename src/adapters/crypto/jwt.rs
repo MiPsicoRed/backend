@@ -4,7 +4,7 @@ use crate::{
     app_error::{AppError, AppResult},
     entities::user::User,
     infra::config::AppConfig,
-    use_cases::user::UserJwtService,
+    use_cases::{user::UserJwtService, user_token::UserTokenJwtService},
 };
 use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
@@ -16,6 +16,7 @@ pub struct Claims {
     pub fullname: String,
     pub role: i32,
     pub verified: bool,
+    pub needs_onboarding: bool,
     exp: usize,
 }
 
@@ -38,6 +39,7 @@ impl UserJwtService for JwtService {
                 fullname: format!("{} {}", &user.username, &user.usersurname),
                 role: user.role.to_id(),
                 verified: user.verified.unwrap_or(false),
+                needs_onboarding: user.needs_onboarding.unwrap_or(true),
                 exp: (Utc::now() + Duration::minutes(120)).timestamp() as usize,
             },
             &EncodingKey::from_secret(self.config.jwt_secret.as_bytes()),
@@ -64,5 +66,25 @@ impl UserJwtService for JwtService {
         })?;
 
         Ok(result.claims)
+    }
+}
+
+impl UserTokenJwtService for JwtService {
+    fn validate_token(&self, token: &str) -> AppResult<()> {
+        decode::<Claims>(
+            token,
+            &DecodingKey::from_secret(self.config.jwt_secret.as_bytes()),
+            &Validation::default(),
+        )
+        .map(|_| ()) // Discard the TokenData, just return ()
+        .map_err(|e| match e.kind() {
+            jsonwebtoken::errors::ErrorKind::ExpiredSignature => {
+                AppError::Unauthorized("Token expired".into())
+            }
+            jsonwebtoken::errors::ErrorKind::InvalidToken => {
+                AppError::Unauthorized("Invalid token".into())
+            }
+            _ => AppError::Unauthorized("Token validation failed".into()),
+        })
     }
 }

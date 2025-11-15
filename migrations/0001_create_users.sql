@@ -5,6 +5,7 @@ CREATE TABLE users (
     usersurname VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     verified BOOLEAN DEFAULT FALSE,
+    needs_onboarding BOOLEAN DEFAULT TRUE,
     password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

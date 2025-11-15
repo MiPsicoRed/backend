@@ -30,6 +30,7 @@ pub struct AuthUser {
     pub fullname: String,
     pub role_id: i32,
     pub verified: bool,
+    pub needs_onboarding: bool,
 }
 
 impl From<Claims> for AuthUser {
@@ -39,6 +40,7 @@ impl From<Claims> for AuthUser {
             fullname: value.fullname,
             role_id: value.role,
             verified: value.verified,
+            needs_onboarding: value.needs_onboarding,
         }
     }
 }

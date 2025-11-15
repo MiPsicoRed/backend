@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
+use uuid::Uuid;
 
 use crate::{adapters::crypto::jwt::Claims, app_error::AppResult, entities::user::User};
 
@@ -15,8 +16,12 @@ pub trait UserPersistence: Send + Sync {
         email: &str,
         password_hash: &str,
     ) -> AppResult<User>;
+
     async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
+
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
+
+    async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()>;
 }
 
 pub trait UserCredentialsHasher: Send + Sync {
@@ -97,6 +102,17 @@ impl UserUseCases {
 
         Ok(users)
     }
+
+    #[instrument(skip(self))]
+    pub async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()> {
+        info!("Changing user onboarded value...");
+
+        self.persistence.user_onboarded(user_id).await?;
+
+        info!("User onboarded correctly.");
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -130,6 +146,7 @@ mod test {
                 usersurname: usersurname.to_string(),
                 email: email.to_string(),
                 verified: Some(false),
+                needs_onboarding: Some(false),
                 password_hash: "".to_string(),
                 created_at: None,
             })
@@ -144,6 +161,7 @@ mod test {
                 usersurname: "doe".to_string(),
                 email: email.to_string(),
                 verified: Some(false),
+                needs_onboarding: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
             })
@@ -157,9 +175,14 @@ mod test {
                 usersurname: "doe".to_string(),
                 email: "testuser@gmail.com".to_string(),
                 verified: Some(false),
+                needs_onboarding: Some(false),
                 password_hash: "hashed_password".to_string(),
                 created_at: None,
             }])
+        }
+
+        async fn user_onboarded(&self, _user_id: &Uuid) -> AppResult<()> {
+            Ok(())
         }
     }
 
