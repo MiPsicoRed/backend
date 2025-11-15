@@ -28,14 +28,18 @@ pub struct OnboardResponse {
     success: bool,
 }
 
-#[utoipa::path(post, path = "/api/user/onboard", 
+#[utoipa::path(post, path = "/api/user/onboarded", 
     responses( 
         (status = 201, description = "Onboarded", body = OnboardResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
-    ), 
+    ),
+    security(
+        ("bearer_auth" = [])  
+    ),
     tag = "User",
-    summary = "Marks the user as onboarded on the database (the changes will not we reflected on the jwt until the user relogs)"
+    summary = "Marks the user as onboarded on the database (the changes will not we reflected on the jwt until the user relogs) \n\n
+        **Required:** Verified Email"
 )]
 #[instrument(skip(user_use_cases))]
 pub async fn onboard_user(
@@ -43,6 +47,8 @@ pub async fn onboard_user(
     Json(payload): Json<OnboardPayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Onboard user called");
+    // TODO: (NOTE): Right now any logged in user can mark anyone as onboarded with a post request if they have the desired user_id, 
+    // they should not have access to other users_id's so this is probably okay.
 
     if !payload.valid() {
         return AppResult::Err(AppError::InvalidPayload);
