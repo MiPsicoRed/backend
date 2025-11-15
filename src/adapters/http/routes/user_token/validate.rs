@@ -1,16 +1,13 @@
-use axum::{Json, http::StatusCode, response::IntoResponse};
-use serde::{Deserialize, Serialize};
-use tracing::{info};
+use std::sync::Arc;
+
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use serde::{Serialize};
+use tracing::{info, warn};
 use utoipa::ToSchema;
 
 use crate::{
-    app_error::{AppResult},
+    app_error::{AppError, AppResult}, use_cases::user_token::UserTokenUseCases,
 };
-
-#[derive(Debug, Clone, Deserialize, ToSchema)]
-pub struct ValidatePayload {
-}
-
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ValidateResponse {
@@ -32,13 +29,34 @@ pub struct ValidateResponse {
     summary = "Validates a JWT token to see if  it's valid"
 )]
 pub async fn validate_token(
+    State(user_token_use_cases): State<Arc<UserTokenUseCases>>,
+    headers: axum::http::HeaderMap,
 ) -> AppResult<impl IntoResponse> {
     info!("Validate user token called");
 
+    let auth_header = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .ok_or_else(|| {
+            AppError::Unauthorized("Missing Authorization header".to_string())
+        })?;
+    
+    let token = auth_header
+        .strip_prefix("Bearer ")
+        .ok_or_else(|| {
+            AppError::Unauthorized("Invalid Authorization header format".to_string())
+        })?;
+    
+    user_token_use_cases
+        .validate_token(token)
+        .await
+        .map_err(|e| {
+            warn!("Token validation failed: {:?}", e);
+            AppError::Unauthorized("Invalid or expired token".to_string())
+        })?;
+    
     Ok((
         StatusCode::OK,
-        Json(ValidateResponse {
-            valid: true
-        }),
+        Json(ValidateResponse { valid: true }),
     ))
 }

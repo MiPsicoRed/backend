@@ -31,12 +31,6 @@ pub trait UserTokenPersistence: Send + Sync {
     async fn verify_user_token(&self, token: &str) -> AppResult<()>;
 }
 
-#[derive(Clone)]
-pub struct UserTokenUseCases {
-    email_service: Arc<dyn UserTokenEmailService>,
-    persistence: Arc<dyn UserTokenPersistence>,
-}
-
 #[async_trait]
 pub trait UserTokenEmailService: Send + Sync {
     /// Returns the 'from' email and the email body
@@ -47,12 +41,25 @@ pub trait UserTokenEmailService: Send + Sync {
     ) -> AppResult<(String, String)>;
 }
 
+pub trait UserTokenJwtService: Send + Sync {
+    fn validate_token(&self, token: &str) -> AppResult<()>;
+}
+
+#[derive(Clone)]
+pub struct UserTokenUseCases {
+    jwt_service: Arc<dyn UserTokenJwtService>,
+    email_service: Arc<dyn UserTokenEmailService>,
+    persistence: Arc<dyn UserTokenPersistence>,
+}
+
 impl UserTokenUseCases {
     pub fn new(
+        jwt_service: Arc<dyn UserTokenJwtService>,
         email_service: Arc<dyn UserTokenEmailService>,
         persistence: Arc<dyn UserTokenPersistence>,
     ) -> Self {
         Self {
+            jwt_service,
             email_service,
             persistence,
         }
@@ -130,6 +137,17 @@ impl UserTokenUseCases {
 
         Ok(())
     }
+
+    #[instrument(skip(self))]
+    pub async fn validate_token(&self, token: &str) -> AppResult<()> {
+        info!("Attempting to validate token...");
+
+        self.jwt_service.validate_token(token)?;
+
+        info!("Verified user token");
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -198,9 +216,18 @@ mod test {
         }
     }
 
+    struct MockUserTokenJwtService;
+
+    impl UserTokenJwtService for MockUserTokenJwtService {
+        fn validate_token(&self, _token: &str) -> AppResult<()> {
+            Ok(())
+        }
+    }
+
     #[tokio::test]
     async fn generate_token_works() {
         let user_token_use_cases = UserTokenUseCases::new(
+            Arc::new(MockUserTokenJwtService),
             Arc::new(MockUserTokenEmailService),
             Arc::new(MockUserTokenPersistence),
         );

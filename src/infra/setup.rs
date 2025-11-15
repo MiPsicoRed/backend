@@ -4,10 +4,15 @@ use crate::{
         argon2_password_hasher, config::AppConfig, email_service, jwt_service, postgres_persistence,
     },
     use_cases::{
-        blog_post::BlogPostUseCases, patient::PatientUseCases, professional::ProfessionalUseCases,
+        blog_post::BlogPostUseCases,
+        patient::PatientUseCases,
+        professional::ProfessionalUseCases,
         professional_language::ProfessionalLanguageUseCases,
-        professional_specialization::ProfessionalSpecializationUseCases, session::SessionUseCases,
-        session_type::SessionTypeUseCases, user::UserUseCases, user_token::UserTokenUseCases,
+        professional_specialization::ProfessionalSpecializationUseCases,
+        session::SessionUseCases,
+        session_type::SessionTypeUseCases,
+        user::{UserJwtService, UserUseCases},
+        user_token::{UserTokenJwtService, UserTokenUseCases},
     },
 };
 use std::fs::File;
@@ -18,18 +23,21 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let config = Arc::new(AppConfig::from_env());
 
     let postgres_arc = Arc::new(postgres_persistence().await?);
-    let jwt_service = jwt_service(Arc::clone(&config));
+    let jwt_service = Arc::new(jwt_service(Arc::clone(&config)));
     let email_service = email_service(Arc::clone(&config));
     let argon_hasher = argon2_password_hasher();
 
     let user_use_cases = UserUseCases::new(
-        Arc::new(jwt_service),
+        jwt_service.clone() as Arc<dyn UserJwtService>,
         Arc::new(argon_hasher),
         postgres_arc.clone(),
     );
 
-    let user_token_use_cases =
-        UserTokenUseCases::new(Arc::new(email_service), postgres_arc.clone());
+    let user_token_use_cases = UserTokenUseCases::new(
+        jwt_service as Arc<dyn UserTokenJwtService>,
+        Arc::new(email_service),
+        postgres_arc.clone(),
+    );
 
     let patient_use_cases = PatientUseCases::new(postgres_arc.clone());
 
