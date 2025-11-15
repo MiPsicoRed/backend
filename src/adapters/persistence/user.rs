@@ -20,6 +20,7 @@ pub struct UserDb {
     pub usersurname: String,
     pub email: String,
     pub verified: Option<bool>,
+    pub needs_onboarding: Option<bool>,
     pub password_hash: String,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
@@ -33,6 +34,7 @@ impl From<UserDb> for User {
             usersurname: user_db.usersurname,
             email: user_db.email,
             verified: user_db.verified,
+            needs_onboarding: user_db.needs_onboarding,
             password_hash: user_db.password_hash,
             created_at: user_db.created_at,
         }
@@ -98,7 +100,7 @@ impl UserPersistence for PostgresPersistence {
         UserDb,
             "INSERT INTO users (id, role_id, username, usersurname, email, password_hash) 
             VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, role_id as role, username, usersurname, email, verified, password_hash, created_at",
+            RETURNING id, role_id as role, username, usersurname, email, verified, needs_onboarding, password_hash, created_at",
             uuid,
             RoleDb::default().to_id(),
             username,
@@ -115,7 +117,7 @@ impl UserPersistence for PostgresPersistence {
     async fn get_user_by_email(&self, email: &str) -> AppResult<User> {
         sqlx::query_as!(
             UserDb,
-            "SELECT id, role_id as role, username, usersurname, email, verified, password_hash, created_at 
+            "SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, password_hash, created_at 
             FROM users 
             WHERE email = $1",
             email
@@ -129,12 +131,28 @@ impl UserPersistence for PostgresPersistence {
     async fn get_all_users(&self) -> AppResult<Vec<User>> {
         sqlx::query_as!(
             UserDb,
-            r#"SELECT id, role_id as role, username, usersurname, email, verified, ''::text as "password_hash!", created_at
+            r#"SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, ''::text as "password_hash!", created_at
                 FROM users"#
         )
         .fetch_all(&self.pool)
         .await
         .map_err(AppError::Database)
         .map(|users| users.into_iter().map(User::from).collect())
+    }
+
+    async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()> {
+        sqlx::query!(
+            r#"
+                UPDATE users
+                SET needs_onboarding = false
+                WHERE id = $1
+            "#,
+            user_id
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(())
     }
 }

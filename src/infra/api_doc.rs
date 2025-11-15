@@ -11,6 +11,7 @@ use utoipa::{
         routes::user::get_all::get_all_users,
         routes::user::login::login,
         routes::user::register::register,
+        routes::user::onboard::onboard_user,
         //user_token
         routes::user_token::generate::generate_token,
         routes::user_token::verify::verify,
@@ -64,6 +65,7 @@ use utoipa::{
             routes::user::get_all::GetAllUsersResponse,
             routes::user::login::LoginResponse,
             routes::user::register::RegisterResponse,
+            routes::user::onboard::OnboardResponse,
             // user_token
             routes::user_token::generate::GenerateResponse,
             routes::user_token::verify::VerifyResponse,

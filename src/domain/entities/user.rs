@@ -9,6 +9,7 @@ pub struct User {
     pub usersurname: String,
     pub email: String,
     pub verified: Option<bool>,
+    pub needs_onboarding: Option<bool>,
     pub password_hash: String,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
