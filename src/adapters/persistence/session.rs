@@ -84,7 +84,39 @@ impl SessionPersistence for PostgresPersistence {
         .map(|sessions| sessions.into_iter().map(Session::from).collect())
     }
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Session> {
+    async fn read_patient(&self, patient_id: &Uuid) -> AppResult<Vec<Session>> {
+        sqlx::query_as!(
+            SessionDb,
+            r#"
+                SELECT id, patient_id, professional_id, session_type_id, session_status_id, session_date, videocall_url, notes, completed, session_duration, created_at
+                FROM sessions
+                WHERE patient_id = $1
+            "#,
+            patient_id
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(|sessions| sessions.into_iter().map(Session::from).collect())
+    }
+
+    async fn read_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Session>> {
+        sqlx::query_as!(
+            SessionDb,
+            r#"
+                SELECT id, patient_id, professional_id, session_type_id, session_status_id, session_date, videocall_url, notes, completed, session_duration, created_at
+                FROM sessions
+                WHERE professional_id = $1
+            "#,
+            professional_id
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(|sessions| sessions.into_iter().map(Session::from).collect())
+    }
+
+    async fn read_single(&self, id: &Uuid) -> AppResult<Session> {
         sqlx::query_as!(
             SessionDb,
             r#"
@@ -123,7 +155,7 @@ impl SessionPersistence for PostgresPersistence {
         Ok(())
     }
 
-    async fn delete(&self, id: Uuid) -> AppResult<()> {
+    async fn delete(&self, id: &Uuid) -> AppResult<()> {
         sqlx::query!("DELETE FROM sessions WHERE id = $1", id)
             .execute(&self.pool)
             .await

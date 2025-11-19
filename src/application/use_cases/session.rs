@@ -12,11 +12,15 @@ pub trait SessionPersistence: Send + Sync {
 
     async fn read_all(&self) -> AppResult<Vec<Session>>;
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Session>;
+    async fn read_patient(&self, patient_id: &Uuid) -> AppResult<Vec<Session>>;
+
+    async fn read_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Session>>;
+
+    async fn read_single(&self, id: &Uuid) -> AppResult<Session>;
 
     async fn update(&self, session: &Session) -> AppResult<()>;
 
-    async fn delete(&self, id: Uuid) -> AppResult<()>;
+    async fn delete(&self, id: &Uuid) -> AppResult<()>;
 }
 
 #[derive(Clone)]
@@ -46,7 +50,17 @@ impl SessionUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn read_single(&self, id: Uuid) -> AppResult<Session> {
+    pub async fn read_patient(&self, patient_id: &Uuid) -> AppResult<Vec<Session>> {
+        self.persistence.read_patient(patient_id).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Session>> {
+        self.persistence.read_professional(professional_id).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_single(&self, id: &Uuid) -> AppResult<Session> {
         self.persistence.read_single(id).await
     }
 
@@ -62,7 +76,7 @@ impl SessionUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn delete(&self, id: Uuid) -> AppResult<()> {
+    pub async fn delete(&self, id: &Uuid) -> AppResult<()> {
         info!("Attempting delete session...");
 
         self.persistence.delete(id).await?;
@@ -99,7 +113,15 @@ mod test {
             Ok(vec![])
         }
 
-        async fn read_single(&self, _id: Uuid) -> AppResult<Session> {
+        async fn read_patient(&self, _patient_id: &Uuid) -> AppResult<Vec<Session>> {
+            Ok(vec![])
+        }
+
+        async fn read_professional(&self, _professional_id: &Uuid) -> AppResult<Vec<Session>> {
+            Ok(vec![])
+        }
+
+        async fn read_single(&self, _id: &Uuid) -> AppResult<Session> {
             Ok(Session {
                 id: Some(Uuid::new_v4()),
                 patient_id: Uuid::new_v4(),
@@ -121,7 +143,7 @@ mod test {
             Ok(())
         }
 
-        async fn delete(&self, _id: Uuid) -> AppResult<()> {
+        async fn delete(&self, _id: &Uuid) -> AppResult<()> {
             Ok(())
         }
     }
@@ -182,10 +204,28 @@ mod test {
     }
 
     #[tokio::test]
+    async fn read_patient_works() {
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+
+        let result = use_cases.read_patient(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn read_professional_works() {
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+
+        let result = use_cases.read_professional(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
     async fn read_single_works() {
         let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
 
-        let result = use_cases.read_single(Uuid::new_v4()).await;
+        let result = use_cases.read_single(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }
@@ -217,7 +257,7 @@ mod test {
     async fn delete_works() {
         let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
 
-        let result = use_cases.delete(Uuid::new_v4()).await;
+        let result = use_cases.delete(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }

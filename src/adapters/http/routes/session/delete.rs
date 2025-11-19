@@ -53,7 +53,7 @@ pub async fn delete_session(
     let session_uuid = Uuid::parse_str(&payload.session_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     use_cases
-        .delete(session_uuid)
+        .delete(&session_uuid)
         .await?;
 
     Ok((

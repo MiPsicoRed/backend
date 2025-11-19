@@ -11,27 +11,27 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
-pub struct SessionReadSingleQuery {
-    #[param(example = "insert-session-uuid")]
-    session_id: String,
+pub struct SessionReadPatientQuery {
+    #[param(example = "insert-patient-uuid")]
+    patient_id: String,
 }
 
-impl Validateable for SessionReadSingleQuery {
+impl Validateable for SessionReadPatientQuery {
     fn valid(&self) -> bool {
-        !self.session_id.is_empty()
+        !self.patient_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct SessionReadSingleResponse {
-    data: SessionResponse,
+pub struct SessionReadPatientResponse {
+    data: Vec<SessionResponse>,
     success: bool,
 }
 
-#[utoipa::path(get, path = "/api/session/single", 
-    params(SessionReadSingleQuery),
+#[utoipa::path(get, path = "/api/session/patient", 
+    params(SessionReadPatientQuery),
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = SessionReadSingleResponse),
+        (status = 200, description = "Data retrieved correctly", body = SessionReadPatientResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -39,27 +39,27 @@ pub struct SessionReadSingleResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Session",
-    summary = "Retrieves data of a single session",
-    description = "\n\n**Required:**  Verified Email + Admin/Professional Role"
+    summary = "Retrieves data of all sessions of a given patient",
+    description = "\n\n**Required:**  Verified Email + Admin/Patient Role"
 )]
 #[instrument(skip(use_cases))]
-pub async fn read_single_session(
+pub async fn read_patient_sessions(
     State(use_cases): State<Arc<SessionUseCases>>,
-    Query(params): Query<SessionReadSingleQuery>,
+    Query(params): Query<SessionReadPatientQuery>,
 ) -> AppResult<impl IntoResponse> {
-    info!("Read single session called");
+    info!("Read patient sessions called");
     if !params.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let session_uuid = Uuid::parse_str(&params.session_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
+    let patient_uuid = Uuid::parse_str(&params.patient_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
-    let session = use_cases
-        .read_single(&session_uuid)
+    let sessions = use_cases
+        .read_patient(&patient_uuid)
         .await?;
 
     Ok((
         StatusCode::OK,
-        Json(SessionReadSingleResponse { success:true , data: session.into()}),
+        Json(SessionReadPatientResponse { success:true , data: sessions.into_iter().map(Into::into).collect() }),
     ))
 }
