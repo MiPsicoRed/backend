@@ -51,17 +51,17 @@ impl SessionUseCases {
 
     #[instrument(skip(self))]
     pub async fn read_patient(&self, patient_id: &Uuid) -> AppResult<Vec<Session>> {
-        self.persistence.read_patient(&patient_id).await
+        self.persistence.read_patient(patient_id).await
     }
 
     #[instrument(skip(self))]
     pub async fn read_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Session>> {
-        self.persistence.read_professional(&professional_id).await
+        self.persistence.read_professional(professional_id).await
     }
 
     #[instrument(skip(self))]
     pub async fn read_single(&self, id: &Uuid) -> AppResult<Session> {
-        self.persistence.read_single(&id).await
+        self.persistence.read_single(id).await
     }
 
     #[instrument(skip(self))]
@@ -79,7 +79,7 @@ impl SessionUseCases {
     pub async fn delete(&self, id: &Uuid) -> AppResult<()> {
         info!("Attempting delete session...");
 
-        self.persistence.delete(&id).await?;
+        self.persistence.delete(id).await?;
 
         info!("Session deleted.");
 
