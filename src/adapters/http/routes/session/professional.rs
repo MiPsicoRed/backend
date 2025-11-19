@@ -11,27 +11,27 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema, IntoParams)]
-pub struct SessionReadSingleQuery {
-    #[param(example = "insert-session-uuid")]
-    session_id: String,
+pub struct SessionReadProfessionalQuery {
+    #[param(example = "insert-professional-uuid")]
+    professional_id: String,
 }
 
-impl Validateable for SessionReadSingleQuery {
+impl Validateable for SessionReadProfessionalQuery {
     fn valid(&self) -> bool {
-        !self.session_id.is_empty()
+        !self.professional_id.is_empty()
     }
 }
 
 #[derive(Debug, Serialize, ToSchema)]
-pub struct SessionReadSingleResponse {
-    data: SessionResponse,
+pub struct SessionReadProfessionalResponse {
+    data: Vec<SessionResponse>,
     success: bool,
 }
 
-#[utoipa::path(get, path = "/api/session/single", 
-    params(SessionReadSingleQuery),
+#[utoipa::path(get, path = "/api/session/professional", 
+    params(SessionReadProfessionalQuery),
     responses( 
-        (status = 200, description = "Data retrieved correctly", body = SessionReadSingleResponse),
+        (status = 200, description = "Data retrieved correctly", body = SessionReadProfessionalResponse),
         (status = 400, description = "Invalid payload"),
         (status = 500, description = "Internal server error or database error")
     ),
@@ -39,27 +39,27 @@ pub struct SessionReadSingleResponse {
         ("bearer_auth" = [])  
     ),
     tag = "Session",
-    summary = "Retrieves data of a single session",
+    summary = "Retrieves data of all sessions of a given professional",
     description = "\n\n**Required:**  Verified Email + Admin/Professional Role"
 )]
 #[instrument(skip(use_cases))]
-pub async fn read_single_session(
+pub async fn read_professional_sessions(
     State(use_cases): State<Arc<SessionUseCases>>,
-    Query(params): Query<SessionReadSingleQuery>,
+    Query(params): Query<SessionReadProfessionalQuery>,
 ) -> AppResult<impl IntoResponse> {
-    info!("Read single session called");
+    info!("Read professional sessions called");
     if !params.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
 
-    let session_uuid = Uuid::parse_str(&params.session_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
+    let professional_uuid = Uuid::parse_str(&params.professional_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
-    let session = use_cases
-        .read_single(&session_uuid)
+    let sessions = use_cases
+        .read_professional(&professional_uuid)
         .await?;
 
     Ok((
         StatusCode::OK,
-        Json(SessionReadSingleResponse { success:true , data: session.into()}),
+        Json(SessionReadProfessionalResponse { success:true , data: sessions.into_iter().map(Into::into).collect() }),
     ))
 }

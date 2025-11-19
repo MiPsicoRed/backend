@@ -12,7 +12,8 @@ use crate::{
         routes::{
             auth_middleware, require_admin, require_professional_or_admin, require_role_middleware,
             session::{
-                create::create_session, delete::delete_session, read_all::read_all_sessions,
+                create::create_session, delete::delete_session, patient::read_patient_sessions,
+                professional::read_professional_sessions, read_all::read_all_sessions,
                 read_single::read_single_session, update::update_session,
             },
             verified_middleware,
@@ -23,6 +24,8 @@ use crate::{
 
 pub mod create;
 pub mod delete;
+pub mod patient;
+pub mod professional;
 pub mod read_all;
 pub mod read_single;
 pub mod update;
@@ -83,6 +86,18 @@ pub fn router() -> Router<AppState> {
         .route(
             "/single", // Required: Verified Email + Admin/Professional Role
             get(read_single_session)
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_professional_or_admin()),
+        )
+        .route(
+            "/patient", // Required: Verified Email + Admin/Professional Role
+            get(read_patient_sessions)
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_professional_or_admin()),
+        )
+        .route(
+            "/professional", // Required: Verified Email + Admin/Professional Role
+            get(read_professional_sessions)
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_professional_or_admin()),
         )

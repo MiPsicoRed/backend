@@ -34,6 +34,8 @@ use utoipa::{
         routes::session::read_all::read_all_sessions,
         routes::session::read_single::read_single_session,
         routes::session::update::update_session,
+        routes::session::professional::read_professional_sessions,
+        routes::session::patient::read_patient_sessions,
         // professionals
         routes::professional::create::create_professional,
         routes::professional::delete::delete_professional,
@@ -88,6 +90,8 @@ use utoipa::{
             routes::session::read_all::SessionReadAllResponse,
             routes::session::read_single::SessionReadSingleResponse,
             routes::session::update::SessionUpdateResponse,
+            routes::session::professional::SessionReadProfessionalResponse,
+            routes::session::patient::SessionReadPatientResponse,
             // professionals
             routes::professional::create::ProfessionalCreateResponse,
             routes::professional::delete::ProfessionalDeleteResponse,
