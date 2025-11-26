@@ -22,6 +22,7 @@ use utoipa::{
         routes::patient::read_all::read_all_patients,
         routes::patient::read_single::read_single_patient,
         routes::patient::update::update_patient,
+        routes::patient::read_by_user::read_patient_by_user,
         // session types
         routes::session_type::create::create_session_type,
         routes::session_type::delete::delete_session_type,
@@ -78,6 +79,7 @@ use utoipa::{
             routes::patient::read_all::PatientReadAllResponse,
             routes::patient::read_single::PatientReadSingleResponse,
             routes::patient::update::PatientUpdateResponse,
+            routes::patient::read_by_user::PatientReadByUserResponse,
             // session types
             routes::session_type::create::SessionTypeCreateResponse,
             routes::session_type::delete::SessionTypeDeleteResponse,
