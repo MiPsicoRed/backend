@@ -54,7 +54,7 @@ pub async fn delete_professional(
     let professional_uuid = Uuid::parse_str(&payload.professional_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     use_cases
-        .delete(professional_uuid)
+        .delete(&professional_uuid)
         .await?;
 
     Ok((

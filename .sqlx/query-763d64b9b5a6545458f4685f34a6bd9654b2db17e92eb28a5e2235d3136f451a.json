@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT id, user_id, gender_id, birthdate, license_number, bio, education, experience_years, hourly_rate, accepts_insurance, created_at\n                FROM professionals \n                WHERE user_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "gender_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "birthdate",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 4,
+        "name": "license_number",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "bio",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "education",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "experience_years",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "hourly_rate",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 9,
+        "name": "accepts_insurance",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "763d64b9b5a6545458f4685f34a6bd9654b2db17e92eb28a5e2235d3136f451a"
+}

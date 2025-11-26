@@ -13,8 +13,8 @@ use crate::{
             auth_middleware,
             professional::{
                 create::create_professional, delete::delete_professional,
-                read_all::read_all_professionals, read_single::read_single_professional,
-                update::update_professional,
+                read_all::read_all_professionals, read_by_user::read_professional_by_user,
+                read_single::read_single_professional, update::update_professional,
             },
             require_admin, require_professional_or_admin, require_role_middleware,
             verified_middleware,
@@ -26,6 +26,7 @@ use crate::{
 pub mod create;
 pub mod delete;
 pub mod read_all;
+pub mod read_by_user;
 pub mod read_single;
 pub mod update;
 
@@ -83,6 +84,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(require_admin()),
         )
         .route("/single", get(read_single_professional)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
+        .route("/user", get(read_professional_by_user)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
         .route(
             "/update", // Required: Verified Email + Admin/Professional Role
             patch(update_professional)

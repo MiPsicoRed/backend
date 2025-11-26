@@ -43,6 +43,7 @@ use utoipa::{
         routes::professional::read_all::read_all_professionals,
         routes::professional::read_single::read_single_professional,
         routes::professional::update::update_professional,
+        routes::professional::read_by_user::read_professional_by_user,
         // professional languages
         routes::professional_language::create::create_professional_language,
         routes::professional_language::delete::delete_professional_language,
@@ -100,6 +101,7 @@ use utoipa::{
             routes::professional::read_all::ProfessionalReadAllResponse,
             routes::professional::read_single::ProfessionalReadSingleResponse,
             routes::professional::update::ProfessionalUpdateResponse,
+            routes::professional::read_by_user::ProfessionalReadByUserResponse,
             // professional languages
             routes::professional_language::create::ProfessionalLanguageCreateResponse,
             routes::professional_language::delete::ProfessionalLanguageDeleteResponse,
