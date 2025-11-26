@@ -13,7 +13,8 @@ use crate::{
             auth_middleware,
             patient::{
                 create::create_patient, delete::delete_patient, read_all::read_all_patients,
-                read_single::read_single_patient, update::update_patient,
+                read_by_user::read_patient_by_user, read_single::read_single_patient,
+                update::update_patient,
             },
             require_admin, require_role_middleware, verified_middleware,
         },
@@ -24,6 +25,7 @@ use crate::{
 pub mod create;
 pub mod delete;
 pub mod read_all;
+pub mod read_by_user;
 pub mod read_single;
 pub mod update;
 
@@ -80,6 +82,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(require_admin()),
         )
         .route("/single", get(read_single_patient)) // Required: Verified Email + Admin/Professional Role or requesting user_id
+        .route("/user", get(read_patient_by_user)) // Required: Verified Email + Admin/Professional Role or requesting user_id
         .route("/update", patch(update_patient)) // Only auth + mail verified required
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))

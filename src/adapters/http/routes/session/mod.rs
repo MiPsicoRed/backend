@@ -89,18 +89,8 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_professional_or_admin()),
         )
-        .route(
-            "/patient", // Required: Verified Email + Admin/Professional Role
-            get(read_patient_sessions)
-                .route_layer(middleware::from_fn(require_role_middleware))
-                .route_layer(require_professional_or_admin()),
-        )
-        .route(
-            "/professional", // Required: Verified Email + Admin/Professional Role
-            get(read_professional_sessions)
-                .route_layer(middleware::from_fn(require_role_middleware))
-                .route_layer(require_professional_or_admin()),
-        )
+        .route("/patient", get(read_patient_sessions)) // Required: Verified Email + Admin/Professional Role or requesting patient_id
+        .route("/professional", get(read_professional_sessions)) // Required: Verified Email + Admin Role or Professional + requesting professional_id
         .route(
             "/update", // Required: Verified Email + Admin/Professional Role
             patch(update_session)

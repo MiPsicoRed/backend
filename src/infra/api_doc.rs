@@ -22,6 +22,7 @@ use utoipa::{
         routes::patient::read_all::read_all_patients,
         routes::patient::read_single::read_single_patient,
         routes::patient::update::update_patient,
+        routes::patient::read_by_user::read_patient_by_user,
         // session types
         routes::session_type::create::create_session_type,
         routes::session_type::delete::delete_session_type,
@@ -42,6 +43,7 @@ use utoipa::{
         routes::professional::read_all::read_all_professionals,
         routes::professional::read_single::read_single_professional,
         routes::professional::update::update_professional,
+        routes::professional::read_by_user::read_professional_by_user,
         // professional languages
         routes::professional_language::create::create_professional_language,
         routes::professional_language::delete::delete_professional_language,
@@ -78,6 +80,7 @@ use utoipa::{
             routes::patient::read_all::PatientReadAllResponse,
             routes::patient::read_single::PatientReadSingleResponse,
             routes::patient::update::PatientUpdateResponse,
+            routes::patient::read_by_user::PatientReadByUserResponse,
             // session types
             routes::session_type::create::SessionTypeCreateResponse,
             routes::session_type::delete::SessionTypeDeleteResponse,
@@ -98,6 +101,7 @@ use utoipa::{
             routes::professional::read_all::ProfessionalReadAllResponse,
             routes::professional::read_single::ProfessionalReadSingleResponse,
             routes::professional::update::ProfessionalUpdateResponse,
+            routes::professional::read_by_user::ProfessionalReadByUserResponse,
             // professional languages
             routes::professional_language::create::ProfessionalLanguageCreateResponse,
             routes::professional_language::delete::ProfessionalLanguageDeleteResponse,

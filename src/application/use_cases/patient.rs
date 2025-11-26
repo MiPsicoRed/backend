@@ -12,11 +12,13 @@ pub trait PatientPersistence: Send + Sync {
 
     async fn read_all(&self) -> AppResult<Vec<Patient>>;
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Patient>;
+    async fn read_single(&self, id: &Uuid) -> AppResult<Patient>;
+
+    async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Patient>;
 
     async fn update(&self, patient: &Patient) -> AppResult<()>;
 
-    async fn delete(&self, id: Uuid) -> AppResult<()>;
+    async fn delete(&self, id: &Uuid) -> AppResult<()>;
 }
 
 #[derive(Clone)]
@@ -46,8 +48,13 @@ impl PatientUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn read_single(&self, id: Uuid) -> AppResult<Patient> {
+    pub async fn read_single(&self, id: &Uuid) -> AppResult<Patient> {
         self.persistence.read_single(id).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Patient> {
+        self.persistence.read_by_user(user_id).await
     }
 
     #[instrument(skip(self))]
@@ -62,7 +69,7 @@ impl PatientUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn delete(&self, id: Uuid) -> AppResult<()> {
+    pub async fn delete(&self, id: &Uuid) -> AppResult<()> {
         info!("Attempting delete patient...");
 
         self.persistence.delete(id).await?;
@@ -103,7 +110,25 @@ mod test {
             Ok(vec![])
         }
 
-        async fn read_single(&self, _id: Uuid) -> AppResult<Patient> {
+        async fn read_single(&self, _id: &Uuid) -> AppResult<Patient> {
+            Ok(Patient {
+                id: Some(Uuid::new_v4()),
+                user_id: None,
+                gender: Gender::Male,
+                sexual_orientation: SexualOrientation::Straight,
+                birthdate: None,
+                phone: "123456789".to_string(),
+                emergency_contact_name: None,
+                emergency_contact_phone: None,
+                insurance_policy_number: None,
+                medical_history: None,
+                current_medications: None,
+                allergies: None,
+                created_at: Some(chrono::Utc::now().naive_utc()),
+            })
+        }
+
+        async fn read_by_user(&self, _user_id: &Uuid) -> AppResult<Patient> {
             Ok(Patient {
                 id: Some(Uuid::new_v4()),
                 user_id: None,
@@ -127,7 +152,7 @@ mod test {
             Ok(())
         }
 
-        async fn delete(&self, _id: Uuid) -> AppResult<()> {
+        async fn delete(&self, _id: &Uuid) -> AppResult<()> {
             Ok(())
         }
     }
@@ -195,7 +220,16 @@ mod test {
     async fn read_single_works() {
         let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
 
-        let result = use_cases.read_single(Uuid::new_v4()).await;
+        let result = use_cases.read_single(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn read_user_works() {
+        let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
+
+        let result = use_cases.read_by_user(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }
@@ -229,7 +263,7 @@ mod test {
     async fn delete_works() {
         let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
 
-        let result = use_cases.delete(Uuid::new_v4()).await;
+        let result = use_cases.delete(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }

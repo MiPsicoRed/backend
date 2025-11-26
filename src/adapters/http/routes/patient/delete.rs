@@ -53,7 +53,7 @@ pub async fn delete_patient(
     let patient_uuid = Uuid::parse_str(&payload.patient_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     use_cases
-        .delete(patient_uuid)
+        .delete(&patient_uuid)
         .await?;
 
     Ok((

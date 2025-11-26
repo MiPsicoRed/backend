@@ -104,7 +104,7 @@ impl PatientPersistence for PostgresPersistence {
         .map(|patients| patients.into_iter().map(Patient::from).collect())
     }
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Patient> {
+    async fn read_single(&self, id: &Uuid) -> AppResult<Patient> {
         sqlx::query_as!(
             PatientDb,
             r#"
@@ -113,6 +113,22 @@ impl PatientPersistence for PostgresPersistence {
                 WHERE id = $1
             "#,
             id
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(Patient::from)
+    }
+
+    async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Patient> {
+        sqlx::query_as!(
+            PatientDb,
+            r#"
+                SELECT id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies, created_at
+                FROM patients 
+                WHERE user_id = $1
+            "#,
+            user_id
         )
         .fetch_one(&self.pool)
         .await
@@ -144,7 +160,7 @@ impl PatientPersistence for PostgresPersistence {
         Ok(())
     }
 
-    async fn delete(&self, id: Uuid) -> AppResult<()> {
+    async fn delete(&self, id: &Uuid) -> AppResult<()> {
         sqlx::query!("DELETE FROM patients WHERE id = $1", id)
             .execute(&self.pool)
             .await

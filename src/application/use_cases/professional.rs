@@ -12,11 +12,13 @@ pub trait ProfessionalPersistence: Send + Sync {
 
     async fn read_all(&self) -> AppResult<Vec<Professional>>;
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Professional>;
+    async fn read_single(&self, id: &Uuid) -> AppResult<Professional>;
+
+    async fn read_by_user(&self, id: &Uuid) -> AppResult<Professional>;
 
     async fn update(&self, professional: &Professional) -> AppResult<()>;
 
-    async fn delete(&self, id: Uuid) -> AppResult<()>;
+    async fn delete(&self, id: &Uuid) -> AppResult<()>;
 }
 
 #[derive(Clone)]
@@ -46,8 +48,13 @@ impl ProfessionalUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn read_single(&self, id: Uuid) -> AppResult<Professional> {
+    pub async fn read_single(&self, id: &Uuid) -> AppResult<Professional> {
         self.persistence.read_single(id).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Professional> {
+        self.persistence.read_by_user(user_id).await
     }
 
     #[instrument(skip(self))]
@@ -62,7 +69,7 @@ impl ProfessionalUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn delete(&self, id: Uuid) -> AppResult<()> {
+    pub async fn delete(&self, id: &Uuid) -> AppResult<()> {
         info!("Attempting delete professional...");
 
         self.persistence.delete(id).await?;
@@ -99,7 +106,23 @@ mod test {
             Ok(vec![])
         }
 
-        async fn read_single(&self, _id: Uuid) -> AppResult<Professional> {
+        async fn read_single(&self, _id: &Uuid) -> AppResult<Professional> {
+            Ok(Professional {
+                id: Some(Uuid::new_v4()),
+                user_id: Some(Uuid::new_v4()),
+                gender: Gender::Male,
+                birthdate: Some(chrono::NaiveDate::from_ymd_opt(2000, 11, 9).unwrap()),
+                license_number: None,
+                bio: None,
+                education: None,
+                experience_years: None,
+                hourly_rate: None,
+                accepts_insurance: false,
+                created_at: None,
+            })
+        }
+
+        async fn read_by_user(&self, _id: &Uuid) -> AppResult<Professional> {
             Ok(Professional {
                 id: Some(Uuid::new_v4()),
                 user_id: Some(Uuid::new_v4()),
@@ -121,7 +144,7 @@ mod test {
             Ok(())
         }
 
-        async fn delete(&self, _id: Uuid) -> AppResult<()> {
+        async fn delete(&self, _id: &Uuid) -> AppResult<()> {
             Ok(())
         }
     }
@@ -185,7 +208,16 @@ mod test {
     async fn read_single_works() {
         let use_cases = ProfessionalUseCases::new(Arc::new(MockProfessionalPersistence));
 
-        let result = use_cases.read_single(Uuid::new_v4()).await;
+        let result = use_cases.read_single(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn read_by_user_works() {
+        let use_cases = ProfessionalUseCases::new(Arc::new(MockProfessionalPersistence));
+
+        let result = use_cases.read_by_user(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }
@@ -217,7 +249,7 @@ mod test {
     async fn delete_works() {
         let use_cases = ProfessionalUseCases::new(Arc::new(MockProfessionalPersistence));
 
-        let result = use_cases.delete(Uuid::new_v4()).await;
+        let result = use_cases.delete(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }

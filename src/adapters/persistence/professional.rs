@@ -97,7 +97,7 @@ impl ProfessionalPersistence for PostgresPersistence {
         .map(|professionals| professionals.into_iter().map(Professional::from).collect())
     }
 
-    async fn read_single(&self, id: Uuid) -> AppResult<Professional> {
+    async fn read_single(&self, id: &Uuid) -> AppResult<Professional> {
         sqlx::query_as!(
             ProfessionalDb,
             r#"
@@ -106,6 +106,22 @@ impl ProfessionalPersistence for PostgresPersistence {
                 WHERE id = $1
             "#,
             id
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(Professional::from)
+    }
+
+    async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Professional> {
+        sqlx::query_as!(
+            ProfessionalDb,
+            r#"
+                SELECT id, user_id, gender_id, birthdate, license_number, bio, education, experience_years, hourly_rate, accepts_insurance, created_at
+                FROM professionals 
+                WHERE user_id = $1
+            "#,
+            user_id
         )
         .fetch_one(&self.pool)
         .await
@@ -135,7 +151,7 @@ impl ProfessionalPersistence for PostgresPersistence {
         Ok(())
     }
 
-    async fn delete(&self, id: Uuid) -> AppResult<()> {
+    async fn delete(&self, id: &Uuid) -> AppResult<()> {
         sqlx::query!("DELETE FROM professionals WHERE id = $1", id)
             .execute(&self.pool)
             .await
