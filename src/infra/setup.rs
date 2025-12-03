@@ -69,8 +69,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 }
 
 pub fn init_tracing() {
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| "axum_trainer=debug,tower_http=debug".into());
+    // let filter = EnvFilter::try_from_default_env()
+    //     .unwrap_or_else(|_| "axum_trainer=debug,tower_http=debug".into());
 
     // Console (pretty logs)
     let console_layer = fmt::layer()
@@ -87,7 +87,7 @@ pub fn init_tracing() {
         .with_span_list(true);
 
     tracing_subscriber::registry()
-        .with(filter)
+        // .with(filter)
         .with(console_layer)
         .with(json_layer)
         .try_init()
