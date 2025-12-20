@@ -17,7 +17,7 @@ use crate::{
 };
 use std::fs::File;
 use std::sync::Arc;
-use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub async fn init_app_state() -> anyhow::Result<AppState> {
     let config = Arc::new(AppConfig::from_env());
@@ -31,7 +31,6 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         jwt_service.clone() as Arc<dyn UserJwtService>,
         Arc::new(argon_hasher),
         postgres_arc.clone(),
-        postgres_arc.clone(), //For patient persistence
     );
 
     let user_token_use_cases = UserTokenUseCases::new(

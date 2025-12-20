@@ -87,17 +87,20 @@ impl From<i32> for RoleDb {
 
 #[async_trait]
 impl UserPersistence for PostgresPersistence {
-    async fn create_user(
+    async fn create_user_and_patient(
         &self,
         username: &str,
         usersurname: &str,
         email: &str,
         password_hash: &str,
     ) -> AppResult<User> {
+        use crate::entities::patient::Patient;
         let uuid = Uuid::new_v4();
 
-        sqlx::query_as!(
-        UserDb,
+        let mut tx = self.pool.begin().await.map_err(AppError::Database)?;
+
+        let user = sqlx::query_as!(
+            UserDb,
             "INSERT INTO users (id, role_id, username, usersurname, email, password_hash) 
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id, role_id as role, username, usersurname, email, verified, needs_onboarding, password_hash, created_at",
@@ -108,10 +111,36 @@ impl UserPersistence for PostgresPersistence {
             email,
             password_hash
         )
-        .fetch_one(&self.pool)
+        .fetch_one(&mut *tx)
         .await
         .map_err(AppError::Database)
-        .map(User::from)
+        .map(User::from)?;
+
+        let patient = Patient::from(&user);
+
+        sqlx::query!(
+        "INSERT INTO patients (id, user_id, gender_id, sexual_orientation_id, birthdate, phone, emergency_contact_name, emergency_contact_phone, insurance_policy_number, medical_history, current_medications, allergies) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            uuid,
+            patient.user_id,
+            patient.gender.to_id(),
+            patient.sexual_orientation.to_id(),
+            patient.birthdate,
+            patient.phone,
+            patient.emergency_contact_name,
+            patient.emergency_contact_phone,
+            patient.insurance_policy_number,
+            patient.medical_history,
+            patient.current_medications,
+            patient.allergies
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        tx.commit().await.map_err(AppError::Database)?;
+
+        Ok(user)
     }
 
     async fn get_user_by_email(&self, email: &str) -> AppResult<User> {

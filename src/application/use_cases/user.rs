@@ -4,14 +4,12 @@ use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use tracing::{info, instrument};
 use uuid::Uuid;
-use crate::application::use_cases::patient::PatientPersistence;
-use crate::entities::{gender::Gender, patient::Patient, sexual_orientation::SexualOrientation};
 
 use crate::{adapters::crypto::jwt::Claims, app_error::AppResult, entities::user::User};
 
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
-    async fn create_user(
+    async fn create_user_and_patient(
         &self,
         username: &str,
         usersurname: &str,
@@ -41,7 +39,6 @@ pub struct UserUseCases {
     pub(crate) jwt_service: Arc<dyn UserJwtService>, // TODO: I had to pub this to access it from the auth middleware, still not sure if this is the okay way to do it.
     hasher: Arc<dyn UserCredentialsHasher>,
     persistence: Arc<dyn UserPersistence>,
-    patient_persistence: Arc<dyn PatientPersistence>,
 }
 
 impl UserUseCases {
@@ -49,13 +46,11 @@ impl UserUseCases {
         jwt_service: Arc<dyn UserJwtService>,
         hasher: Arc<dyn UserCredentialsHasher>,
         persistence: Arc<dyn UserPersistence>,
-        patient_persistence: Arc<dyn PatientPersistence>,
     ) -> Self {
         Self {
             hasher,
             jwt_service,
             persistence,
-            patient_persistence,
         }
     }
 
@@ -72,29 +67,8 @@ impl UserUseCases {
         let hash = &self.hasher.hash_password(password.expose_secret())?;
         let user = self
             .persistence
-            .create_user(username, usersurname, email, hash)
+            .create_user_and_patient(username, usersurname, email, hash)
             .await?;
-
-        //This info is default and will be updated during onboarding
-        self.patient_persistence
-            .create(&Patient {
-                id: None,
-                user_id: Some(user.id),
-                gender: Gender::Male,
-                sexual_orientation: SexualOrientation::Straight,
-                birthdate: Some(chrono::NaiveDate::from_ymd(1990, 1, 1)),
-                phone: "".to_string(),
-                emergency_contact_name: None,
-                emergency_contact_phone: None,
-                insurance_policy_number: None,
-                medical_history: None,
-                current_medications: None,
-                allergies: None,
-                created_at: None,
-            })
-            .await?;
-
-        info!("Adding user finished.");
 
         let jwt_token = self.jwt_service.generate_token(&user)?;
 
@@ -152,7 +126,7 @@ mod test {
 
     #[async_trait]
     impl UserPersistence for MockUserPersistence {
-        async fn create_user(
+        async fn create_user_and_patient(
             &self,
             username: &str,
             usersurname: &str,
