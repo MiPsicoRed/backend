@@ -14,7 +14,8 @@ use crate::{
             professional::{
                 create::create_professional, delete::delete_professional,
                 read_all::read_all_professionals, read_by_user::read_professional_by_user,
-                read_single::read_single_professional, update::update_professional,
+                read_single::read_single_professional, selector::professionals_selector,
+                update::update_professional,
             },
             require_admin, require_professional_or_admin, require_role_middleware,
             verified_middleware,
@@ -28,6 +29,7 @@ pub mod delete;
 pub mod read_all;
 pub mod read_by_user;
 pub mod read_single;
+pub mod selector;
 pub mod update;
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -79,10 +81,9 @@ pub fn router() -> Router<AppState> {
         )
         .route(
             "/all", // Required: Verified Email + Admin Role
-            //TODO: Question [pol]: would it be secure to show professionals without admin role? Update if needed
             get(read_all_professionals)
-                // .route_layer(middleware::from_fn(require_role_middleware))
-                // .route_layer(require_admin()),
+                .route_layer(middleware::from_fn(require_role_middleware))
+                .route_layer(require_admin()),
         )
         .route("/single", get(read_single_professional)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
         .route("/user", get(read_professional_by_user)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
@@ -92,6 +93,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_professional_or_admin()),
         )
+        .route("/selector", get(professionals_selector))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }

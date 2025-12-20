@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::{
     adapters::persistence::PostgresPersistence,
     app_error::{AppError, AppResult},
+    dtos::professional::selector::ProfessionalSelectorDTO,
     entities::{gender::Gender, professional::Professional},
     use_cases::professional::ProfessionalPersistence,
 };
@@ -158,5 +159,21 @@ impl ProfessionalPersistence for PostgresPersistence {
             .map_err(AppError::Database)?;
 
         Ok(())
+    }
+
+    async fn selector(&self) -> AppResult<Vec<ProfessionalSelectorDTO>> {
+        sqlx::query_as!(
+            ProfessionalSelectorDTO,
+            r#"
+                SELECT 
+                    p.id as professional_id,
+                    CONCAT(u.username, ' ', u.usersurname) as "name!"
+                FROM professionals p
+                INNER JOIN users u ON p.user_id = u.id
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::Database)
     }
 }

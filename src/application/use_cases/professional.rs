@@ -4,7 +4,10 @@ use async_trait::async_trait;
 use tracing::{info, instrument};
 use uuid::Uuid;
 
-use crate::{app_error::AppResult, entities::professional::Professional};
+use crate::{
+    app_error::AppResult, dtos::professional::selector::ProfessionalSelectorDTO,
+    entities::professional::Professional,
+};
 
 #[async_trait]
 pub trait ProfessionalPersistence: Send + Sync {
@@ -19,6 +22,8 @@ pub trait ProfessionalPersistence: Send + Sync {
     async fn update(&self, professional: &Professional) -> AppResult<()>;
 
     async fn delete(&self, id: &Uuid) -> AppResult<()>;
+
+    async fn selector(&self) -> AppResult<Vec<ProfessionalSelectorDTO>>;
 }
 
 #[derive(Clone)]
@@ -77,6 +82,11 @@ impl ProfessionalUseCases {
         info!("Professional deleted.");
 
         Ok(())
+    }
+
+    #[instrument(skip(self))]
+    pub async fn selector(&self) -> AppResult<Vec<ProfessionalSelectorDTO>> {
+        self.persistence.selector().await
     }
 }
 
@@ -146,6 +156,10 @@ mod test {
 
         async fn delete(&self, _id: &Uuid) -> AppResult<()> {
             Ok(())
+        }
+
+        async fn selector(&self) -> AppResult<Vec<ProfessionalSelectorDTO>> {
+            Ok(vec![])
         }
     }
 
@@ -250,6 +264,15 @@ mod test {
         let use_cases = ProfessionalUseCases::new(Arc::new(MockProfessionalPersistence));
 
         let result = use_cases.delete(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn selector_works() {
+        let use_cases = ProfessionalUseCases::new(Arc::new(MockProfessionalPersistence));
+
+        let result = use_cases.selector().await;
 
         assert!(result.is_ok());
     }
