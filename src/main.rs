@@ -1,6 +1,12 @@
 use dotenvy::dotenv;
 use tracing::info;
 
+// Avoid musl's default allocator due to lackluster performance
+// https://nickb.dev/blog/default-musl-allocator-considered-harmful-to-performance
+#[cfg(target_env = "musl")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use mipsicored_backend::infra::{app::create_app, setup::init_app_state};
 
 #[tokio::main]
