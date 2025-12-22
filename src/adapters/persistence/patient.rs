@@ -136,6 +136,26 @@ impl PatientPersistence for PostgresPersistence {
         .map(Patient::from)
     }
 
+    async fn read_by_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Patient>> {
+        sqlx::query_as!(
+            PatientDb,
+            r#"
+            SELECT DISTINCT p.id, p.user_id, p.gender_id, p.sexual_orientation_id, 
+                   p.birthdate, p.phone, p.emergency_contact_name, 
+                   p.emergency_contact_phone, p.insurance_policy_number, 
+                   p.medical_history, p.current_medications, p.allergies, p.created_at
+            FROM patients p
+            INNER JOIN sessions s ON p.id = s.patient_id
+            WHERE s.professional_id = $1
+        "#,
+            professional_id
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(|patients| patients.into_iter().map(Patient::from).collect())
+    }
+
     async fn update(&self, patient: &Patient) -> AppResult<()> {
         sqlx::query!(
             "UPDATE patients 

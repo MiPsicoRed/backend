@@ -16,6 +16,8 @@ pub trait PatientPersistence: Send + Sync {
 
     async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Patient>;
 
+    async fn read_by_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Patient>>;
+
     async fn update(&self, patient: &Patient) -> AppResult<()>;
 
     async fn delete(&self, id: &Uuid) -> AppResult<()>;
@@ -55,6 +57,11 @@ impl PatientUseCases {
     #[instrument(skip(self))]
     pub async fn read_by_user(&self, user_id: &Uuid) -> AppResult<Patient> {
         self.persistence.read_by_user(user_id).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_by_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Patient>> {
+        self.persistence.read_by_professional(professional_id).await
     }
 
     #[instrument(skip(self))]
@@ -146,6 +153,10 @@ mod test {
             })
         }
 
+        async fn read_by_professional(&self, _professional_id: &Uuid) -> AppResult<Vec<Patient>> {
+            Ok(vec![])
+        }
+
         async fn update(&self, patient: &Patient) -> AppResult<()> {
             assert!(patient.id.is_some());
 
@@ -230,6 +241,15 @@ mod test {
         let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
 
         let result = use_cases.read_by_user(&Uuid::new_v4()).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn read_by_professional_works() {
+        let use_cases = PatientUseCases::new(Arc::new(MockPatientPersistence));
+
+        let result = use_cases.read_by_professional(&Uuid::new_v4()).await;
 
         assert!(result.is_ok());
     }

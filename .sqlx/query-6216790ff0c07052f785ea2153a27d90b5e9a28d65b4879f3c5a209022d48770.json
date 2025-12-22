@@ -1,0 +1,94 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT DISTINCT p.id, p.user_id, p.gender_id, p.sexual_orientation_id, \n                   p.birthdate, p.phone, p.emergency_contact_name, \n                   p.emergency_contact_phone, p.insurance_policy_number, \n                   p.medical_history, p.current_medications, p.allergies, p.created_at\n            FROM patients p\n            INNER JOIN sessions s ON p.id = s.patient_id\n            WHERE s.professional_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "gender_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "sexual_orientation_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "birthdate",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 5,
+        "name": "phone",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "emergency_contact_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "emergency_contact_phone",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "insurance_policy_number",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "medical_history",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "current_medications",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "allergies",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "6216790ff0c07052f785ea2153a27d90b5e9a28d65b4879f3c5a209022d48770"
+}
