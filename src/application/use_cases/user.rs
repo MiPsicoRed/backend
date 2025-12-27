@@ -34,9 +34,12 @@ pub trait UserJwtService: Send + Sync {
     fn validate_token(&self, token: &str) -> AppResult<Claims>;
 }
 
+pub trait UserPolarService: Send + Sync {}
+
 #[derive(Clone)]
 pub struct UserUseCases {
     pub(crate) jwt_service: Arc<dyn UserJwtService>, // TODO: I had to pub this to access it from the auth middleware, still not sure if this is the okay way to do it.
+    polar_service: Arc<dyn UserPolarService>,
     hasher: Arc<dyn UserCredentialsHasher>,
     persistence: Arc<dyn UserPersistence>,
 }
@@ -44,11 +47,13 @@ pub struct UserUseCases {
 impl UserUseCases {
     pub fn new(
         jwt_service: Arc<dyn UserJwtService>,
+        polar_service: Arc<dyn UserPolarService>,
         hasher: Arc<dyn UserCredentialsHasher>,
         persistence: Arc<dyn UserPersistence>,
     ) -> Self {
         Self {
             hasher,
+            polar_service,
             jwt_service,
             persistence,
         }
@@ -220,10 +225,15 @@ mod test {
         }
     }
 
+    struct MockUserPolarService;
+
+    impl UserPolarService for MockUserPolarService {}
+
     #[tokio::test]
     async fn add_user_works() {
         let user_use_cases = UserUseCases::new(
             Arc::new(MockUserJWTService),
+            Arc::new(MockUserPolarService),
             Arc::new(MockUserCredentialsHasher),
             Arc::new(MockUserPersistence),
         );
