@@ -34,7 +34,32 @@ pub trait UserJwtService: Send + Sync {
     fn validate_token(&self, token: &str) -> AppResult<Claims>;
 }
 
-pub trait UserPolarService: Send + Sync {}
+#[async_trait]
+pub trait UserPolarService: Send + Sync {
+    /// Get or create a Polar customer (lazy creation)
+    async fn get_or_create_customer(
+        &self,
+        user_id: &Uuid,
+        email: &str,
+        name: &str,
+    ) -> AppResult<String>;
+
+    /// Generate checkout URL for product purchase
+    async fn create_checkout_url(
+        &self,
+        user_id: &Uuid,
+        email: &str,
+        name: &str,
+        product_id: &str,
+        success_url: &str,
+    ) -> AppResult<String>;
+
+    /// Check if user has purchased a product
+    async fn has_purchased_product(&self, user_id: &Uuid, product_id: &str) -> AppResult<bool>;
+
+    /// Get customer portal URL for viewing invoices
+    async fn get_portal_url(&self, user_id: &Uuid) -> AppResult<String>;
+}
 
 #[derive(Clone)]
 pub struct UserUseCases {
@@ -227,7 +252,40 @@ mod test {
 
     struct MockUserPolarService;
 
-    impl UserPolarService for MockUserPolarService {}
+    #[async_trait]
+    impl UserPolarService for MockUserPolarService {
+        async fn get_or_create_customer(
+            &self,
+            _user_id: &Uuid,
+            _email: &str,
+            _name: &str,
+        ) -> AppResult<String> {
+            Ok("polar_customer_123".to_string())
+        }
+
+        async fn create_checkout_url(
+            &self,
+            _user_id: &Uuid,
+            _email: &str,
+            _name: &str,
+            _product_id: &str,
+            _success_url: &str,
+        ) -> AppResult<String> {
+            Ok("https://polar.sh/checkout/test".to_string())
+        }
+
+        async fn has_purchased_product(
+            &self,
+            _user_id: &Uuid,
+            _product_id: &str,
+        ) -> AppResult<bool> {
+            Ok(true)
+        }
+
+        async fn get_portal_url(&self, _user_id: &Uuid) -> AppResult<String> {
+            Ok("https://polar.sh/portal/test".to_string())
+        }
+    }
 
     #[tokio::test]
     async fn add_user_works() {
