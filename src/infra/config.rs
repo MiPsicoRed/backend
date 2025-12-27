@@ -1,10 +1,14 @@
 use std::env;
 
+use tracing::{info, warn};
+
 pub struct AppConfig {
     pub jwt_secret: String,
     pub resend_key: String,
     pub resend_from_email: String,
     pub base_frontend_url: String,
+    pub release_mode: bool,
+    pub polar_access_token: String,
     //pub access_token_ttl: Duration,
     //pub refresh_token_ttl: Duration,
 }
@@ -21,6 +25,23 @@ impl AppConfig {
         let base_frontend_url =
             env::var("BASE_FRONTEND_URL").expect("BASE_FRONTEND_URL must be set");
 
+        let release_mode: bool = match env::var("RELEASE_MODE") {
+            Ok(val) => match val.parse::<bool>() {
+                Ok(parsed) => parsed,
+                Err(_) => {
+                    warn!("RELEASE_MODE is set but not a valid boolean, defaulting to false");
+                    false
+                }
+            },
+            Err(_) => {
+                info!("RELEASE_MODE not set, defaulting to false");
+                false
+            }
+        };
+
+        let polar_access_token =
+            env::var("POLAR_ACCESS_TOKEN").expect("POLAR_ACCESS_TOKEN must be set");
+
         // let refresh_token_ttl_days: i64 = env::var("REFRESH_TOKEN_TTL_DAYS")
         //     .unwrap_or("30".to_string())
         //     .parse()
@@ -36,6 +57,8 @@ impl AppConfig {
             resend_key,
             resend_from_email,
             base_frontend_url,
+            release_mode,
+            polar_access_token,
             //access_token_ttl: Duration::seconds(access_token_ttl_secs),
             //refresh_token_ttl: Duration::days(refresh_token_ttl_days),
         }

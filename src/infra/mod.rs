@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     adapters::{
-        crypto::{argon2::ArgonPasswordHasher, jwt::JwtService},
+        crypto::{argon2::ArgonPasswordHasher, jwt::JwtService, polar::PolarService},
         email::email_service::EmailService,
         persistence::PostgresPersistence,
     },
@@ -32,4 +32,8 @@ pub fn jwt_service(config: Arc<AppConfig>) -> JwtService {
 
 pub fn email_service(config: Arc<AppConfig>) -> EmailService {
     EmailService::new(config)
+}
+
+pub fn polar_service(config: Arc<AppConfig>) -> PolarService {
+    PolarService::new(config)
 }

@@ -19,6 +19,9 @@ impl IntoResponse for AppError {
             AppError::InvalidPayload => {
                 (StatusCode::BAD_REQUEST, "Invalid payload").into_response()
             }
+            AppError::ExternalService(_) => {
+                (StatusCode::CONFLICT, "External Error (Payments...)").into_response()
+            }
             AppError::Internal(_) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal error").into_response()
             }
