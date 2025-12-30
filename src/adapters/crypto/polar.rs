@@ -24,6 +24,19 @@ impl PolarService {
             },
         }
     }
+
+    pub async fn get_all_products(&self) -> AppResult<Vec<Product>> {
+        let res = self
+            .client
+            .list_products(&ListParams {
+                page: None,
+                limit: None,
+            })
+            .await
+            .map_err(|e: PolarError| AppError::ExternalService(e.to_string()))?;
+
+        Ok(res.items)
+    }
 }
 
 #[async_trait]

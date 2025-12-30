@@ -10,11 +10,17 @@ use crate::adapters::http::routes::{
     require_admin, require_role_middleware,
     user::{onboard::onboard_user, register::register},
 };
-use crate::adapters::http::routes::{user::login::login, verified_middleware};
+use crate::adapters::http::routes::{
+    user::check_access::check_access, user::create_checkout::create_checkout,
+    user::get_portal_url::get_portal_url, user::login::login, verified_middleware,
+};
 use crate::adapters::http::{app_state::AppState, routes::auth_middleware};
 use crate::{adapters::http::routes::user::get_all::get_all_users, entities::user::User};
 
+pub mod check_access;
+pub mod create_checkout;
 pub mod get_all;
+pub mod get_portal_url;
 pub mod login;
 pub mod onboard;
 pub mod register;
@@ -61,6 +67,10 @@ pub fn router() -> Router<AppState> {
                 .route_layer(require_admin()), // Extension needs to go AFTER the middleware
         )
         .route("/onboarded", post(onboard_user))
+        // Polar endpoints
+        .route("/checkout", get(create_checkout))
+        .route("/purchases/access", get(check_access))
+        .route("/portal", get(get_portal_url))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware)); // Main auth middleware always has to be the LAST
 
