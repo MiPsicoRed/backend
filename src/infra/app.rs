@@ -20,7 +20,11 @@ pub fn create_app(app_state: AppState) -> Router {
                 .parse::<http::HeaderValue>()
                 .unwrap(),
         )
-        .allow_methods([http::Method::POST, http::Method::GET])
+        .allow_methods([
+            http::Method::POST,
+            http::Method::GET,
+            http::Method::PATCH,
+        ])
         .allow_headers([CONTENT_TYPE, AUTHORIZATION])
         .allow_credentials(true);
 
