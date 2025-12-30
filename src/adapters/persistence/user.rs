@@ -157,6 +157,20 @@ impl UserPersistence for PostgresPersistence {
         .map(User::from)
     }
 
+    async fn get_single_user(&self, user_id: &Uuid) -> AppResult<User> {
+        sqlx::query_as!(
+            UserDb,
+            "SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, password_hash, created_at 
+            FROM users 
+            WHERE id = $1",
+            user_id
+        )
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::Database)
+        .map(User::from)
+    }
+
     async fn get_all_users(&self) -> AppResult<Vec<User>> {
         sqlx::query_as!(
             UserDb,

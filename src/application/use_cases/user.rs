@@ -17,6 +17,8 @@ pub trait UserPersistence: Send + Sync {
         password_hash: &str,
     ) -> AppResult<User>;
 
+    async fn get_single_user(&self, user_id: &Uuid) -> AppResult<User>;
+
     async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
 
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
@@ -34,9 +36,37 @@ pub trait UserJwtService: Send + Sync {
     fn validate_token(&self, token: &str) -> AppResult<Claims>;
 }
 
+#[async_trait]
+pub trait UserPolarService: Send + Sync {
+    /// Get or create a Polar customer (lazy creation)
+    async fn get_or_create_customer(
+        &self,
+        user_id: &Uuid,
+        email: &str,
+        name: &str,
+    ) -> AppResult<String>;
+
+    /// Generate checkout URL for product purchase
+    async fn create_checkout_url(
+        &self,
+        user_id: &Uuid,
+        email: &str,
+        name: &str,
+        product_id: &str,
+        success_url: &str,
+    ) -> AppResult<String>;
+
+    /// Check if user has purchased a product
+    async fn has_purchased_product(&self, user_id: &Uuid, product_id: &str) -> AppResult<bool>;
+
+    /// Get customer portal URL for viewing invoices
+    async fn get_portal_url(&self, user_id: &Uuid) -> AppResult<String>;
+}
+
 #[derive(Clone)]
 pub struct UserUseCases {
     pub(crate) jwt_service: Arc<dyn UserJwtService>, // TODO: I had to pub this to access it from the auth middleware, still not sure if this is the okay way to do it.
+    polar_service: Arc<dyn UserPolarService>,
     hasher: Arc<dyn UserCredentialsHasher>,
     persistence: Arc<dyn UserPersistence>,
 }
@@ -44,11 +74,13 @@ pub struct UserUseCases {
 impl UserUseCases {
     pub fn new(
         jwt_service: Arc<dyn UserJwtService>,
+        polar_service: Arc<dyn UserPolarService>,
         hasher: Arc<dyn UserCredentialsHasher>,
         persistence: Arc<dyn UserPersistence>,
     ) -> Self {
         Self {
             hasher,
+            polar_service,
             jwt_service,
             persistence,
         }
@@ -111,6 +143,55 @@ impl UserUseCases {
 
         Ok(())
     }
+
+    #[instrument(skip(self))]
+    pub async fn create_purchase_checkout(
+        &self,
+        user_id: &Uuid,
+        product_id: &str,
+        success_url: &str,
+    ) -> AppResult<String> {
+        info!("Creating checkout for user purchase...");
+
+        let user = self.persistence.get_single_user(user_id).await?;
+
+        // This will create Polar customer if it doesn't exist
+        let checkout_url = self
+            .polar_service
+            .create_checkout_url(
+                user_id,
+                &user.email,
+                &user.username,
+                product_id,
+                success_url,
+            )
+            .await?;
+
+        info!("Checkout URL created successfully");
+
+        Ok(checkout_url)
+    }
+
+    #[instrument(skip(self))]
+    pub async fn check_product_access(&self, user_id: &Uuid, product_id: &str) -> AppResult<bool> {
+        info!("Checking product access for user...");
+
+        let has_access = self
+            .polar_service
+            .has_purchased_product(user_id, product_id)
+            .await?;
+
+        Ok(has_access)
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_customer_portal_url(&self, user_id: &Uuid) -> AppResult<String> {
+        info!("Getting customer portal URL...");
+
+        let portal_url = self.polar_service.get_portal_url(user_id).await?;
+
+        Ok(portal_url)
+    }
 }
 
 #[cfg(test)]
@@ -158,6 +239,20 @@ mod test {
                 username: "john".to_string(),
                 usersurname: "doe".to_string(),
                 email: email.to_string(),
+                verified: Some(false),
+                needs_onboarding: Some(false),
+                password_hash: "hashed_password".to_string(),
+                created_at: None,
+            })
+        }
+
+        async fn get_single_user(&self, _user_id: &Uuid) -> AppResult<User> {
+            Ok(User {
+                id: Uuid::new_v4(),
+                role: Role::default(),
+                username: "john".to_string(),
+                usersurname: "doe".to_string(),
+                email: "testuser@gmail.com".to_string(),
                 verified: Some(false),
                 needs_onboarding: Some(false),
                 password_hash: "hashed_password".to_string(),
@@ -220,10 +315,48 @@ mod test {
         }
     }
 
+    struct MockUserPolarService;
+
+    #[async_trait]
+    impl UserPolarService for MockUserPolarService {
+        async fn get_or_create_customer(
+            &self,
+            _user_id: &Uuid,
+            _email: &str,
+            _name: &str,
+        ) -> AppResult<String> {
+            Ok("polar_customer_123".to_string())
+        }
+
+        async fn create_checkout_url(
+            &self,
+            _user_id: &Uuid,
+            _email: &str,
+            _name: &str,
+            _product_id: &str,
+            _success_url: &str,
+        ) -> AppResult<String> {
+            Ok("https://polar.sh/checkout/test".to_string())
+        }
+
+        async fn has_purchased_product(
+            &self,
+            _user_id: &Uuid,
+            _product_id: &str,
+        ) -> AppResult<bool> {
+            Ok(true)
+        }
+
+        async fn get_portal_url(&self, _user_id: &Uuid) -> AppResult<String> {
+            Ok("https://polar.sh/portal/test".to_string())
+        }
+    }
+
     #[tokio::test]
     async fn add_user_works() {
         let user_use_cases = UserUseCases::new(
             Arc::new(MockUserJWTService),
+            Arc::new(MockUserPolarService),
             Arc::new(MockUserCredentialsHasher),
             Arc::new(MockUserPersistence),
         );

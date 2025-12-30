@@ -1,7 +1,8 @@
 use crate::{
     adapters::http::app_state::AppState,
     infra::{
-        argon2_password_hasher, config::AppConfig, email_service, jwt_service, postgres_persistence,
+        argon2_password_hasher, config::AppConfig, email_service, jwt_service, polar_service,
+        postgres_persistence,
     },
     use_cases::{
         blog_post::BlogPostUseCases,
@@ -24,11 +25,13 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 
     let postgres_arc = Arc::new(postgres_persistence().await?);
     let jwt_service = Arc::new(jwt_service(Arc::clone(&config)));
+    let polar_service = polar_service(Arc::clone(&config));
     let email_service = email_service(Arc::clone(&config));
     let argon_hasher = argon2_password_hasher();
 
     let user_use_cases = UserUseCases::new(
         jwt_service.clone() as Arc<dyn UserJwtService>,
+        Arc::new(polar_service),
         Arc::new(argon_hasher),
         postgres_arc.clone(),
     );

@@ -12,6 +12,9 @@ use utoipa::{
         routes::user::login::login,
         routes::user::register::register,
         routes::user::onboard::onboard_user,
+        routes::user::check_access::check_access,
+        routes::user::create_checkout::create_checkout,
+        routes::user::get_portal_url::get_portal_url,
         //user_token
         routes::user_token::generate::generate_token,
         routes::user_token::verify::verify,
@@ -72,6 +75,9 @@ use utoipa::{
             routes::user::login::LoginResponse,
             routes::user::register::RegisterResponse,
             routes::user::onboard::OnboardResponse,
+            routes::user::check_access::CheckAccessResponse,
+            routes::user::create_checkout::CheckoutResponse,
+            routes::user::get_portal_url::PortalResponse,
             // user_token
             routes::user_token::generate::GenerateResponse,
             routes::user_token::verify::VerifyResponse,

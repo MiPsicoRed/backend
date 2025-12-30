@@ -14,6 +14,9 @@ pub enum AppError {
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
 
+    #[error("External error: {0}")]
+    ExternalService(String),
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
