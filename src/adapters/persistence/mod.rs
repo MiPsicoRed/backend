@@ -10,6 +10,7 @@ pub mod session;
 pub mod session_type;
 pub mod user;
 pub mod user_token;
+pub mod transaction;
 
 #[derive(Clone)]
 pub struct PostgresPersistence {

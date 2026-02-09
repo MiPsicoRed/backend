@@ -2,6 +2,7 @@ use crate::{
     adapters::http::app_state::AppState,
     infra::{
         argon2_password_hasher, config::AppConfig, email_service, jwt_service, postgres_persistence,
+        stripe_gateway,
     },
     use_cases::{
         blog_post::BlogPostUseCases,
@@ -13,6 +14,7 @@ use crate::{
         session_type::SessionTypeUseCases,
         user::{UserJwtService, UserUseCases},
         user_token::{UserTokenJwtService, UserTokenUseCases},
+        payment::PaymentUseCases,
     },
 };
 use std::fs::File;
@@ -54,6 +56,9 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 
     let blog_post_use_cases = BlogPostUseCases::new(postgres_arc.clone());
 
+    let stripe_gateway = Arc::new(stripe_gateway(Arc::clone(&config)));
+    let payment_use_cases = PaymentUseCases::new(postgres_arc.clone(), stripe_gateway);
+
     Ok(AppState {
         config,
         user_use_cases: Arc::new(user_use_cases),
@@ -65,6 +70,7 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         professional_languages_use_cases: Arc::new(professional_languages_use_cases),
         professional_specializations_use_cases: Arc::new(professional_specializations_use_cases),
         blog_post_use_cases: Arc::new(blog_post_use_cases),
+        payment_use_cases: Arc::new(payment_use_cases),
     })
 }
 

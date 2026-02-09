@@ -7,6 +7,7 @@ pub mod session;
 pub mod session_type;
 pub mod user;
 pub mod user_token;
+pub mod checkout;
 
 use std::sync::Arc;
 
@@ -16,7 +17,8 @@ use crate::{
     entities::user::Role,
     use_cases::user::UserJwtService,
 };
-use axum::{Extension, Router, extract::Request, middleware::Next, response::Response};
+use axum::{Extension, Router, extract::Request, middleware::Next, response::Response, routing::post};
+use checkout::create_checkout_session;
 
 /// Trait that a Payload should implement in order to be validated (TODO: Can I enforce this)
 trait Validateable {
@@ -132,7 +134,8 @@ pub fn router() -> Router<AppState> {
         .nest("/user", user::router())
         .nest("/user_token", user_token::router())
         .nest("/patient", patient::router())
-        .nest("/session_type", session_type::router())
+        .nest("/session-type", session_type::router())
+        .nest("/checkout", Router::new().route("/session", post(create_checkout_session)))
         .nest("/session", session::router())
         .nest("/professional", professional::router())
         .nest("/professional_language", professional_language::router())

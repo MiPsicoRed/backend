@@ -1,3 +1,4 @@
+pub mod transaction;
 pub mod blog_post;
 pub mod email;
 pub mod gender;
