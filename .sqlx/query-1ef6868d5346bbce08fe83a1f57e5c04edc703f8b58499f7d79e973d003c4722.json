@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE transactions\n            SET payment_intent_id = $1, status = $2, updated_at = $3\n            WHERE id = $4\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Varchar",
+        "Timestamp",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1ef6868d5346bbce08fe83a1f57e5c04edc703f8b58499f7d79e973d003c4722"
+}

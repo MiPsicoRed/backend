@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use stripe::CheckoutSession;
 use stripe::Client;
 use async_trait::async_trait;
 use tracing::error;
@@ -84,4 +85,3 @@ impl PaymentGateway for StripeGateway {
     }
 }
 
-use stripe::CheckoutSession;
