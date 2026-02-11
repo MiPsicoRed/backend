@@ -22,6 +22,8 @@ impl IntoResponse for AppError {
             AppError::Internal(_) => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal error").into_response()
             }
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg).into_response(),
+            AppError::ExternalServiceError(msg) => (StatusCode::BAD_GATEWAY, msg).into_response(),
             AppError::Unauthorized(_) => (StatusCode::UNAUTHORIZED, "Unauthorized").into_response(),
         }
     }

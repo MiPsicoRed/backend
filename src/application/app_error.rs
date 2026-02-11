@@ -16,6 +16,12 @@ pub enum AppError {
 
     #[error("Internal error: {0}")]
     Internal(String),
+
+    #[error("Not Found: {0}")]
+    NotFound(String),
+
+    #[error("External Service Error: {0}")]
+    ExternalServiceError(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;

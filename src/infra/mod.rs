@@ -14,6 +14,9 @@ pub mod app;
 pub mod config;
 pub mod db;
 pub mod setup;
+pub mod payment;
+
+use self::payment::stripe_gateway::StripeGateway;
 
 pub async fn postgres_persistence() -> anyhow::Result<PostgresPersistence> {
     let pool = init_db().await?;
@@ -32,4 +35,8 @@ pub fn jwt_service(config: Arc<AppConfig>) -> JwtService {
 
 pub fn email_service(config: Arc<AppConfig>) -> EmailService {
     EmailService::new(config)
+}
+
+pub fn stripe_gateway(config: Arc<AppConfig>) -> StripeGateway {
+    StripeGateway::new(config)
 }
