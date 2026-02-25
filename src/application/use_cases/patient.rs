@@ -1,8 +1,10 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+
 use tracing::{info, instrument};
 use uuid::Uuid;
+use chrono::NaiveDate;
 
 use crate::{app_error::AppResult, entities::patient::Patient};
 
@@ -19,6 +21,8 @@ pub trait PatientPersistence: Send + Sync {
     async fn read_by_professional(&self, professional_id: &Uuid) -> AppResult<Vec<Patient>>;
 
     async fn update(&self, patient: &Patient) -> AppResult<()>;
+
+    async fn update_birthdate(&self, patient_id: &Uuid, birthdate: NaiveDate) -> AppResult<()>;
 
     async fn delete(&self, id: &Uuid) -> AppResult<()>;
 }
@@ -160,6 +164,10 @@ mod test {
         async fn update(&self, patient: &Patient) -> AppResult<()> {
             assert!(patient.id.is_some());
 
+             Ok(())
+        }
+
+        async fn update_birthdate(&self, _patient_id: &Uuid, _birthdate: NaiveDate) -> AppResult<()> {
             Ok(())
         }
 

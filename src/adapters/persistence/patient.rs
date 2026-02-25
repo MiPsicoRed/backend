@@ -180,6 +180,21 @@ impl PatientPersistence for PostgresPersistence {
         Ok(())
     }
 
+
+
+    async fn update_birthdate(&self, patient_id: &Uuid, birthdate: NaiveDate) -> AppResult<()> {
+        sqlx::query!(
+            "UPDATE patients SET birthdate = $2 WHERE id = $1",
+            patient_id,
+            birthdate
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        Ok(())
+    }
+
     async fn delete(&self, id: &Uuid) -> AppResult<()> {
         sqlx::query!("DELETE FROM patients WHERE id = $1", id)
             .execute(&self.pool)

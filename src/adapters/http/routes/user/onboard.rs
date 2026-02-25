@@ -15,6 +15,10 @@ use crate::{
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct OnboardPayload {
     user_id: String,
+    birthdate: chrono::NaiveDate,
+    guardian_name: Option<String>,
+    guardian_id_document: Option<String>,
+    signature: Option<String>, // Base64 encoded
 }
 
 impl Validateable for OnboardPayload {
@@ -57,7 +61,13 @@ pub async fn onboard_user(
     let user_uuid = Uuid::parse_str(&payload.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
     user_use_cases
-        .user_onboarded(&user_uuid)
+        .user_onboarded(
+            &user_uuid,
+            payload.birthdate,
+            payload.guardian_name,
+            payload.guardian_id_document,
+            payload.signature,
+        )
         .await?;
 
     Ok((
