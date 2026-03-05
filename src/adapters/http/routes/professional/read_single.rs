@@ -79,11 +79,11 @@ fn authorized(auth_user: &AuthUser, professional: &Professional) -> bool {
     // Check authorization
     match requesting_role {
         Role::Admin => true,
+        Role::Patient => true,
         Role::Professional => {
-            professional.user_id
-                .as_ref()
-                .map(|id| id.to_string() == auth_user.user_id)
-                .unwrap_or(false)
+            // TODO: [lazaropaul] A professional can only read their own profile, or ideally they can read other profs too?
+            // For now allow any verified user to read professional profiles, as they are public on the platform
+            true
         },
         _ => false,
     }
