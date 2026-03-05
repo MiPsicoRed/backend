@@ -66,10 +66,8 @@ impl From<Session> for SessionResponse {
 pub fn router() -> Router<AppState> {
     Router::new()
         .route(
-            "/create", // Required: Verified Email + Admin/Professional Role
+            "/create", // Required: Verified Email
             post(create_session)
-                .route_layer(middleware::from_fn(require_role_middleware))
-                .route_layer(require_professional_or_admin()),
         )
         .route(
             "/delete", // Required: Verified Email + Admin Role

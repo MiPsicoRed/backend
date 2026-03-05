@@ -89,6 +89,6 @@ fn authorized(auth_user: &AuthUser, professional: &Professional) -> bool {
                 .map(|id| id.to_string() == auth_user.user_id)
                 .unwrap_or(false) // Don't allow if no user_id specified
         },
-        Role::Patient => false,
+        Role::Patient => true, // Patients need to fetch professional sessions to check availability
     }
 }
