@@ -11,6 +11,7 @@ pub struct User {
     pub verified: Option<bool>,
     pub needs_onboarding: Option<bool>,
     pub password_hash: String,
+    pub profile_picture_url: Option<String>,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 

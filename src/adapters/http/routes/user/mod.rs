@@ -15,9 +15,11 @@ use crate::adapters::http::{app_state::AppState, routes::auth_middleware};
 use crate::{adapters::http::routes::user::get_all::get_all_users, entities::user::User};
 
 pub mod get_all;
+pub mod get_me;
 pub mod login;
 pub mod onboard;
 pub mod register;
+pub mod upload_profile_picture;
 
 #[derive(Debug, Serialize, ToSchema)]
 struct UserResponse {
@@ -29,6 +31,7 @@ struct UserResponse {
     pub verified: Option<bool>,
     pub needs_onboarding: Option<bool>,
     pub password_hash: String,
+    pub profile_picture_url: Option<String>,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 
@@ -43,6 +46,7 @@ impl From<User> for UserResponse {
             verified: user.verified,
             needs_onboarding: user.needs_onboarding,
             password_hash: String::new(), // just in case, never map the password hash to a response
+            profile_picture_url: user.profile_picture_url,
             created_at: user.created_at,
         }
     }
@@ -61,6 +65,8 @@ pub fn router() -> Router<AppState> {
                 .route_layer(require_admin()), // Extension needs to go AFTER the middleware
         )
         .route("/onboarded", post(onboard_user))
+        .route("/profile-picture", post(upload_profile_picture::upload_profile_picture))
+        .route("/me", get(get_me::get_me))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware)); // Main auth middleware always has to be the LAST
 

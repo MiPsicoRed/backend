@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, ''::text as \"password_hash!\", created_at\n                FROM users",
+  "query": "SELECT id, role_id as role, username, usersurname, email, verified, needs_onboarding, password_hash, profile_picture_url, created_at \n            FROM users \n            WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -40,17 +40,24 @@
       },
       {
         "ordinal": 7,
-        "name": "password_hash!",
-        "type_info": "Text"
+        "name": "password_hash",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 8,
+        "name": "profile_picture_url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamp"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
       false,
@@ -60,9 +67,10 @@
       false,
       true,
       true,
-      null,
+      false,
+      true,
       true
     ]
   },
-  "hash": "da210dbaac94e198cc34aa605b143690e48d5f9a054fb921d7a156251957ca5a"
+  "hash": "30989eb4f7b6d9c26021045d44612002baa6677250c377e1dfc3c49cbf065e91"
 }
