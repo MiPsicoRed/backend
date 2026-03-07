@@ -33,6 +33,8 @@ struct UserResponse {
     pub password_hash: String,
     pub profile_picture_url: Option<String>,
     pub created_at: Option<chrono::NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub onboarding_info: Option<crate::use_cases::user::OnboardingDto>,
 }
 
 impl From<User> for UserResponse {
@@ -48,6 +50,7 @@ impl From<User> for UserResponse {
             password_hash: String::new(), // just in case, never map the password hash to a response
             profile_picture_url: user.profile_picture_url,
             created_at: user.created_at,
+            onboarding_info: None,
         }
     }
 }

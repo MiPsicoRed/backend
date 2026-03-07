@@ -7,6 +7,25 @@ use uuid::Uuid;
 
 use crate::{adapters::crypto::jwt::Claims, app_error::AppResult, entities::user::User};
 
+#[derive(Debug, Clone, serde::Serialize, utoipa::ToSchema)]
+pub struct OnboardingDto {
+    pub user_id: Uuid,
+    pub user_type: String,
+    pub full_name: Option<String>,
+    pub phone: Option<String>,
+    #[schema(value_type = Option<String>)]
+    pub birthdate: Option<chrono::NaiveDate>,
+    pub reason: Option<String>,
+    pub experience: Option<String>,
+    pub is_monoparental: bool,
+    pub guardian_name: Option<String>,
+    pub guardian_id_document: Option<String>,
+    pub signature: Option<String>,
+    pub guardian2_name: Option<String>,
+    pub guardian2_id_document: Option<String>,
+    pub signature2: Option<String>,
+}
+
 #[async_trait]
 pub trait UserPersistence: Send + Sync {
     async fn create_user_and_patient(
@@ -23,7 +42,9 @@ pub trait UserPersistence: Send + Sync {
 
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
 
-    async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()>;
+    async fn get_onboarding_info(&self, user_id: &Uuid) -> AppResult<Option<OnboardingDto>>;
+
+    async fn user_onboarded(&self, dto: OnboardingDto) -> AppResult<()>;
 
     async fn update_profile_picture_url(
         &self,
@@ -121,10 +142,17 @@ impl UserUseCases {
     }
 
     #[instrument(skip(self))]
-    pub async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()> {
-        info!("Changing user onboarded value...");
+    pub async fn get_onboarding_info(&self, user_id: &Uuid) -> AppResult<Option<OnboardingDto>> {
+        info!("Getting user onboarding info...");
+        let info = self.persistence.get_onboarding_info(user_id).await?;
+        Ok(info)
+    }
 
-        self.persistence.user_onboarded(user_id).await?;
+    #[instrument(skip(self))]
+    pub async fn user_onboarded(&self, dto: OnboardingDto) -> AppResult<()> {
+        info!("Changing user onboarded value and recording consent details...");
+
+        self.persistence.user_onboarded(dto).await?;
 
         info!("User onboarded correctly.");
 
@@ -233,8 +261,12 @@ mod test {
             }])
         }
 
-        async fn user_onboarded(&self, _user_id: &Uuid) -> AppResult<()> {
+        async fn user_onboarded(&self, _dto: OnboardingDto) -> AppResult<()> {
             Ok(())
+        }
+
+        async fn get_onboarding_info(&self, _user_id: &Uuid) -> AppResult<Option<OnboardingDto>> {
+            Ok(None)
         }
 
         async fn update_profile_picture_url(

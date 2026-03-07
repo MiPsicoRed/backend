@@ -8,7 +8,7 @@ use crate::{
     adapters::persistence::PostgresPersistence,
     app_error::{AppError, AppResult},
     entities::user::{Role, User},
-    use_cases::user::UserPersistence,
+    use_cases::user::{UserPersistence, OnboardingDto},
 };
 
 // User struct as stored in the db.
@@ -186,18 +186,119 @@ impl UserPersistence for PostgresPersistence {
         .map(|users| users.into_iter().map(User::from).collect())
     }
 
-    async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()> {
+    async fn get_onboarding_info(&self, user_id: &Uuid) -> AppResult<Option<OnboardingDto>> {
+        let onboarding = sqlx::query!(
+            r#"
+                SELECT user_type, full_name, phone, birthdate, reason, experience
+                FROM user_onboardings
+                WHERE user_id = $1
+            "#,
+            user_id
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::Database)?;
+
+        if let Some(ob) = onboarding {
+            let consent = sqlx::query!(
+                r#"
+                    SELECT is_monoparental, guardian_name, guardian_id_document, signature, guardian2_name, guardian2_id_document, signature2
+                    FROM user_consents
+                    WHERE user_id = $1
+                "#,
+                user_id
+            )
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(AppError::Database)?;
+
+            Ok(Some(OnboardingDto {
+                user_id: *user_id,
+                user_type: ob.user_type,
+                full_name: ob.full_name,
+                phone: ob.phone,
+                birthdate: ob.birthdate,
+                reason: ob.reason,
+                experience: ob.experience,
+                is_monoparental: consent.as_ref().map(|c| c.is_monoparental).unwrap_or(true),
+                guardian_name: consent.as_ref().and_then(|c| c.guardian_name.clone()),
+                guardian_id_document: consent.as_ref().and_then(|c| c.guardian_id_document.clone()),
+                signature: consent.as_ref().and_then(|c| c.signature.clone()),
+                guardian2_name: consent.as_ref().and_then(|c| c.guardian2_name.clone()),
+                guardian2_id_document: consent.as_ref().and_then(|c| c.guardian2_id_document.clone()),
+                signature2: consent.as_ref().and_then(|c| c.signature2.clone()),
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn user_onboarded(&self, dto: OnboardingDto) -> AppResult<()> {
+        let mut tx = self.pool.begin().await.map_err(AppError::Database)?;
+
         sqlx::query!(
             r#"
                 UPDATE users
                 SET needs_onboarding = false
                 WHERE id = $1
             "#,
-            user_id
+            dto.user_id
         )
-        .execute(&self.pool)
+        .execute(&mut *tx)
         .await
         .map_err(AppError::Database)?;
+
+        // Ensure we wipe old onboardings/consents before saving to execute a pseudo-upsert
+        sqlx::query!("DELETE FROM user_onboardings WHERE user_id = $1", dto.user_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(AppError::Database)?;
+
+        sqlx::query!("DELETE FROM user_consents WHERE user_id = $1", dto.user_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(AppError::Database)?;
+
+        let onboarding_id = Uuid::new_v4();
+        sqlx::query!(
+            r#"
+                INSERT INTO user_onboardings (id, user_id, user_type, full_name, phone, birthdate, reason, experience)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            "#,
+            onboarding_id,
+            dto.user_id,
+            dto.user_type,
+            dto.full_name,
+            dto.phone,
+            dto.birthdate,
+            dto.reason,
+            dto.experience
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        let consent_id = Uuid::new_v4();
+        sqlx::query!(
+            r#"
+                INSERT INTO user_consents (id, user_id, is_monoparental, guardian_name, guardian_id_document, signature, guardian2_name, guardian2_id_document, signature2)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            "#,
+            consent_id,
+            dto.user_id,
+            dto.is_monoparental,
+            dto.guardian_name,
+            dto.guardian_id_document,
+            dto.signature,
+            dto.guardian2_name,
+            dto.guardian2_id_document,
+            dto.signature2
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(AppError::Database)?;
+
+        tx.commit().await.map_err(AppError::Database)?;
 
         Ok(())
     }
