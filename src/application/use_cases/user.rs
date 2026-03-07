@@ -19,9 +19,17 @@ pub trait UserPersistence: Send + Sync {
 
     async fn get_user_by_email(&self, email: &str) -> AppResult<User>;
 
+    async fn get_user_by_id(&self, user_id: &Uuid) -> AppResult<User>;
+
     async fn get_all_users(&self) -> AppResult<Vec<User>>;
 
     async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()>;
+
+    async fn update_profile_picture_url(
+        &self,
+        user_id: &Uuid,
+        profile_picture_url: &str,
+    ) -> AppResult<()>;
 }
 
 pub trait UserCredentialsHasher: Send + Sync {
@@ -116,6 +124,19 @@ impl UserUseCases {
         guardian_id_document: Option<String>,
         signature: Option<String>,
     ) -> AppResult<()> {
+        
+    pub async fn get_user_by_id(&self, user_id: &Uuid) -> AppResult<User> {
+        info!("Getting user by id...");
+
+        let user = self.persistence.get_user_by_id(user_id).await?;
+
+        info!("Got user by id.");
+
+        Ok(user)
+    }
+
+    #[instrument(skip(self))]
+    pub async fn user_onboarded(&self, user_id: &Uuid) -> AppResult<()> {
         info!("Changing user onboarded value...");
 
         // 1. Update Patient Birthdate
@@ -162,6 +183,23 @@ impl UserUseCases {
 
         Ok(())
     }
+
+    #[instrument(skip(self))]
+    pub async fn update_profile_picture_url(
+        &self,
+        user_id: &Uuid,
+        profile_picture_url: &str,
+    ) -> AppResult<()> {
+        info!("Updating user profile picture url...");
+
+        self.persistence
+            .update_profile_picture_url(user_id, profile_picture_url)
+            .await?;
+
+        info!("User profile picture url updated correctly.");
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -200,6 +238,7 @@ mod test {
                 verified: Some(false),
                 needs_onboarding: Some(false),
                 password_hash: "".to_string(),
+                profile_picture_url: None,
                 created_at: None,
             })
         }
@@ -215,6 +254,22 @@ mod test {
                 verified: Some(false),
                 needs_onboarding: Some(false),
                 password_hash: "hashed_password".to_string(),
+                profile_picture_url: None,
+                created_at: None,
+            })
+        }
+
+        async fn get_user_by_id(&self, user_id: &Uuid) -> AppResult<User> {
+            Ok(User {
+                id: user_id.clone(),
+                role: Role::default(),
+                username: "john".to_string(),
+                usersurname: "doe".to_string(),
+                email: "testuser@gmail.com".to_string(),
+                verified: Some(false),
+                needs_onboarding: Some(false),
+                password_hash: "hashed_password".to_string(),
+                profile_picture_url: None,
                 created_at: None,
             })
         }
@@ -229,11 +284,20 @@ mod test {
                 verified: Some(false),
                 needs_onboarding: Some(false),
                 password_hash: "hashed_password".to_string(),
+                profile_picture_url: None,
                 created_at: None,
             }])
         }
 
         async fn user_onboarded(&self, _user_id: &Uuid) -> AppResult<()> {
+            Ok(())
+        }
+
+        async fn update_profile_picture_url(
+            &self,
+            _user_id: &Uuid,
+            _profile_picture_url: &str,
+        ) -> AppResult<()> {
             Ok(())
         }
     }

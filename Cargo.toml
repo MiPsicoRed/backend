@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.6"
+axum = { version = "0.8.6", features = ["multipart"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 tokio = { version = "1.48.0", features = ["full"] }
@@ -26,7 +26,7 @@ tracing-subscriber = { version = "0.3.22", features = [
     "std",
     "json",
 ] }
-tower-http = { version = "0.6.8", features = ["trace", "cors"] }
+tower-http = { version = "0.6.8", features = ["trace", "cors", "fs"] }
 secrecy = { version = "0.10.3", features = ["serde"] }
 uuid = { version = "1.19.0", features = ["serde", "v4"] }
 chrono = { version = "0.4.42", features = ["serde"] }

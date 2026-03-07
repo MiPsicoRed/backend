@@ -36,6 +36,10 @@ pub fn create_app(app_state: AppState) -> Router {
                 .url("/api-docs/openapi.json", super::api_doc::ApiDoc::openapi()),
         )
         .nest("/api", adapters::http::routes::router())
+        .nest_service(
+            "/api/uploads",
+            tower_http::services::ServeDir::new("uploads"),
+        )
         .with_state(app_state)
         .layer(Extension(jwt_service_ext))
         .layer(cors)
