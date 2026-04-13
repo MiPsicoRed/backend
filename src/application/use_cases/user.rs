@@ -68,7 +68,9 @@ pub struct UserUseCases {
     pub(crate) jwt_service: Arc<dyn UserJwtService>, // TODO: I had to pub this to access it from the auth middleware, still not sure if this is the okay way to do it.
     hasher: Arc<dyn UserCredentialsHasher>,
     persistence: Arc<dyn UserPersistence>,
+    #[allow(dead_code)]
     patient_persistence: Arc<dyn crate::use_cases::patient::PatientPersistence>,
+    #[allow(dead_code)]
     parent_consent_persistence: Arc<dyn crate::use_cases::parent_consent::ParentConsentPersistence>,
 }
 
@@ -136,16 +138,7 @@ impl UserUseCases {
         Ok(users)
     }
 
-    #[instrument(skip(self))]
-    pub async fn user_onboarded(
-        &self,
-        user_id: &Uuid,
-        birthdate: chrono::NaiveDate,
-        guardian_name: Option<String>,
-        guardian_id_document: Option<String>,
-        signature: Option<String>,
-    ) -> AppResult<()> {
-        
+
     pub async fn get_user_by_id(&self, user_id: &Uuid) -> AppResult<User> {
         info!("Getting user by id...");
 
