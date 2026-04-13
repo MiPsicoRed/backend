@@ -33,6 +33,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         jwt_service.clone() as Arc<dyn UserJwtService>,
         Arc::new(argon_hasher),
         postgres_arc.clone(),
+        postgres_arc.clone(),
+        postgres_arc.clone(),
     );
 
     let user_token_use_cases = UserTokenUseCases::new(

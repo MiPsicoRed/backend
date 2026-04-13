@@ -42,6 +42,7 @@ pub struct ProfessionalReadSingleResponse {
     summary = "Retrieves data of a single professional",
     description = "\n\n**Required:**  Verified Email + Admin Role or Professional + requesting user_id"
 )]
+
 #[instrument(skip(use_cases))]
 pub async fn read_single_professional(
     Extension(auth_user): Extension<AuthUser>,
@@ -73,7 +74,7 @@ pub async fn read_single_professional(
     ))
 }
 
-fn authorized(auth_user: &AuthUser, professional: &Professional) -> bool {
+fn authorized(auth_user: &AuthUser, _professional: &Professional) -> bool {
     let requesting_role = Role::from_id(auth_user.role_id).unwrap_or_default();
     
     // Check authorization
@@ -85,6 +86,5 @@ fn authorized(auth_user: &AuthUser, professional: &Professional) -> bool {
             // For now allow any verified user to read professional profiles, as they are public on the platform
             true
         },
-        _ => false,
     }
 }

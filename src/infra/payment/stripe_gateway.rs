@@ -30,7 +30,7 @@ impl PaymentGateway for StripeGateway {
         amount: i64,
         currency: &str,
         success_url: &str,
-        cancel_url: &str,
+        _cancel_url: &str,
         metadata: Option<std::collections::HashMap<String, String>>,
     ) -> AppResult<(String, String)> {
         use stripe::{
@@ -62,7 +62,7 @@ impl PaymentGateway for StripeGateway {
 
         create_session.line_items = Some(vec![line_item]);
 
-        if let Some(meta) = metadata {
+        if let Some(_meta) = metadata {
              // TODO: [lazaropaul] In "final" app, we would have to map `metadata`
              // (Transaction info) to Stripe metadata create_session.metadata = ...
         }

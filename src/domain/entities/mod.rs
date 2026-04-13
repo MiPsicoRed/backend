@@ -2,6 +2,7 @@ pub mod transaction;
 pub mod blog_post;
 pub mod email;
 pub mod gender;
+pub mod parent_consent;
 pub mod patient;
 pub mod professional;
 pub mod professional_language;

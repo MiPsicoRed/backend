@@ -68,6 +68,10 @@ pub struct UserUseCases {
     pub(crate) jwt_service: Arc<dyn UserJwtService>, // TODO: I had to pub this to access it from the auth middleware, still not sure if this is the okay way to do it.
     hasher: Arc<dyn UserCredentialsHasher>,
     persistence: Arc<dyn UserPersistence>,
+    #[allow(dead_code)]
+    patient_persistence: Arc<dyn crate::use_cases::patient::PatientPersistence>,
+    #[allow(dead_code)]
+    parent_consent_persistence: Arc<dyn crate::use_cases::parent_consent::ParentConsentPersistence>,
 }
 
 impl UserUseCases {
@@ -75,11 +79,15 @@ impl UserUseCases {
         jwt_service: Arc<dyn UserJwtService>,
         hasher: Arc<dyn UserCredentialsHasher>,
         persistence: Arc<dyn UserPersistence>,
+        patient_persistence: Arc<dyn crate::use_cases::patient::PatientPersistence>,
+        parent_consent_persistence: Arc<dyn crate::use_cases::parent_consent::ParentConsentPersistence>,
     ) -> Self {
         Self {
             hasher,
             jwt_service,
             persistence,
+            patient_persistence,
+            parent_consent_persistence,
         }
     }
 
@@ -130,7 +138,7 @@ impl UserUseCases {
         Ok(users)
     }
 
-    #[instrument(skip(self))]
+
     pub async fn get_user_by_id(&self, user_id: &Uuid) -> AppResult<User> {
         info!("Getting user by id...");
 
@@ -180,9 +188,12 @@ impl UserUseCases {
 #[cfg(test)]
 mod test {
     use async_trait::async_trait;
+
+    use chrono::NaiveDate;
     use uuid::Uuid;
 
     use crate::entities::user::Role;
+    use crate::domain::entities::parent_consent::ParentConsent;
 
     use super::*;
 
@@ -296,6 +307,44 @@ mod test {
         }
     }
 
+    struct MockPatientPersistence;
+
+    #[async_trait]
+    impl crate::use_cases::patient::PatientPersistence for MockPatientPersistence {
+        async fn create(&self, _patient: &crate::entities::patient::Patient) -> AppResult<()> { Ok(()) }
+        async fn read_all(&self) -> AppResult<Vec<crate::entities::patient::Patient>> { Ok(vec![]) }
+        async fn read_single(&self, _id: &Uuid) -> AppResult<crate::entities::patient::Patient> { Err(crate::app_error::AppError::Internal("Not impl".into())) }
+        async fn read_by_user(&self, _user_id: &Uuid) -> AppResult<crate::entities::patient::Patient> { 
+             Ok(crate::entities::patient::Patient {
+                id: Some(Uuid::new_v4()),
+                user_id: None,
+                gender: crate::entities::gender::Gender::default(),
+                sexual_orientation: crate::entities::sexual_orientation::SexualOrientation::default(),
+                birthdate: None,
+                phone: "".to_string(),
+                emergency_contact_name: None,
+                emergency_contact_phone: None,
+                insurance_policy_number: None,
+                medical_history: None,
+                current_medications: None,
+                allergies: None,
+                created_at: None,
+            })
+        }
+        async fn read_by_professional(&self, _professional_id: &Uuid) -> AppResult<Vec<crate::entities::patient::Patient>> { Ok(vec![]) }
+        async fn update(&self, _patient: &crate::entities::patient::Patient) -> AppResult<()> { Ok(()) }
+        async fn update_birthdate(&self, _patient_id: &Uuid, _birthdate: NaiveDate) -> AppResult<()> { Ok(()) }
+        async fn delete(&self, _id: &Uuid) -> AppResult<()> { Ok(()) }
+    }
+
+    struct MockParentConsentPersistence;
+
+    #[async_trait]
+    impl crate::use_cases::parent_consent::ParentConsentPersistence for MockParentConsentPersistence {
+        async fn create(&self, _consent: &ParentConsent) -> AppResult<()> { Ok(()) }
+        async fn read_by_patient(&self, _patient_id: &Uuid) -> AppResult<Option<ParentConsent>> { Ok(None) }
+    }
+
     struct MockUserJWTService;
 
     impl UserJwtService for MockUserJWTService {
@@ -320,6 +369,8 @@ mod test {
             Arc::new(MockUserJWTService),
             Arc::new(MockUserCredentialsHasher),
             Arc::new(MockUserPersistence),
+            Arc::new(MockPatientPersistence),
+            Arc::new(MockParentConsentPersistence),
         );
 
         let result = user_use_cases
