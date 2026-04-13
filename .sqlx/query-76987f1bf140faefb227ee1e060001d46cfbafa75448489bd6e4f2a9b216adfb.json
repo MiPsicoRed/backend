@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT is_monoparental, guardian_name, guardian_id_document, signature, guardian2_name, guardian2_id_document, signature2\n                    FROM user_consents\n                    WHERE user_id = $1\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_monoparental",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 1,
+        "name": "guardian_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "guardian_id_document",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "signature",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "guardian2_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "guardian2_id_document",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "signature2",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "76987f1bf140faefb227ee1e060001d46cfbafa75448489bd6e4f2a9b216adfb"
+}

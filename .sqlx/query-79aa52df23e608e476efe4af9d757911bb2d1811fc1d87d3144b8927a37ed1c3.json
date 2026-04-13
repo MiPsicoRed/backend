@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO user_consents (id, user_id, is_monoparental, guardian_name, guardian_id_document, signature, guardian2_name, guardian2_id_document, signature2)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Varchar",
+        "Varchar",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "79aa52df23e608e476efe4af9d757911bb2d1811fc1d87d3144b8927a37ed1c3"
+}
