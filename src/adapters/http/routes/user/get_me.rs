@@ -15,7 +15,10 @@ pub async fn get_me(
     let uuid = Uuid::parse_str(&user_id).map_err(|_| AppError::InvalidPayload)?;
     
     let user = state.user_use_cases.get_user_by_id(&uuid).await?;
-    let response: UserResponse = user.into();
+    let onboarding_info = state.user_use_cases.get_onboarding_info(&uuid).await?;
+    
+    let mut response: UserResponse = user.into();
+    response.onboarding_info = onboarding_info;
     
     Ok((StatusCode::OK, Json(response)))
 }

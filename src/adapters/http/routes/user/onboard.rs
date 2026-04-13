@@ -14,16 +14,25 @@ use crate::{
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct OnboardPayload {
-    user_id: String,
-    birthdate: chrono::NaiveDate,
-    guardian_name: Option<String>,
-    guardian_id_document: Option<String>,
-    signature: Option<String>, // Base64 encoded
+    pub user_id: String,
+    pub user_type: String,
+    pub full_name: Option<String>,
+    pub phone: Option<String>,
+    pub birthdate: Option<String>,
+    pub reason: Option<String>,
+    pub experience: Option<String>,
+    pub is_monoparental: Option<bool>,
+    pub guardian_name: Option<String>,
+    pub guardian_id_document: Option<String>,
+    pub signature: Option<String>,
+    pub guardian_2_name: Option<String>,
+    pub guardian_2_id_document: Option<String>,
+    pub signature_2: Option<String>,
 }
 
 impl Validateable for OnboardPayload {
     fn valid(&self) -> bool {
-        !self.user_id.is_empty()
+        !self.user_id.is_empty() && !self.user_type.is_empty()
     }
 }
 
@@ -60,14 +69,25 @@ pub async fn onboard_user(
 
     let user_uuid = Uuid::parse_str(&payload.user_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
 
+    let dto = crate::use_cases::user::OnboardingDto {
+        user_id: user_uuid,
+        user_type: payload.user_type,
+        full_name: payload.full_name,
+        phone: payload.phone,
+        birthdate: payload.birthdate.and_then(|d| chrono::NaiveDate::parse_from_str(&d, "%Y-%m-%d").ok()),
+        reason: payload.reason,
+        experience: payload.experience,
+        is_monoparental: payload.is_monoparental.unwrap_or(true),
+        guardian_name: payload.guardian_name,
+        guardian_id_document: payload.guardian_id_document,
+        signature: payload.signature,
+        guardian2_name: payload.guardian_2_name,
+        guardian2_id_document: payload.guardian_2_id_document,
+        signature2: payload.signature_2,
+    };
+
     user_use_cases
-        .user_onboarded(
-            &user_uuid,
-            payload.birthdate,
-            payload.guardian_name,
-            payload.guardian_id_document,
-            payload.signature,
-        )
+        .user_onboarded(dto)
         .await?;
 
     Ok((
