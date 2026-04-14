@@ -15,8 +15,10 @@ pub mod config;
 pub mod db;
 pub mod setup;
 pub mod payment;
+pub mod google_meet;
 
 use self::payment::stripe_gateway::StripeGateway;
+use self::google_meet::GoogleMeetService;
 
 pub async fn postgres_persistence() -> anyhow::Result<PostgresPersistence> {
     let pool = init_db().await?;
@@ -40,3 +42,8 @@ pub fn email_service(config: Arc<AppConfig>) -> EmailService {
 pub fn stripe_gateway(config: Arc<AppConfig>) -> StripeGateway {
     StripeGateway::new(config)
 }
+
+pub fn google_meet_service(config: Arc<AppConfig>) -> GoogleMeetService {
+    GoogleMeetService::new(config)
+}
+

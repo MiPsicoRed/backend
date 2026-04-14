@@ -2,7 +2,7 @@ use crate::{
     adapters::http::app_state::AppState,
     infra::{
         argon2_password_hasher, config::AppConfig, email_service, jwt_service, postgres_persistence,
-        stripe_gateway,
+        stripe_gateway, google_meet_service,
     },
     use_cases::{
         blog_post::BlogPostUseCases,
@@ -47,7 +47,9 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 
     let session_type_use_cases = SessionTypeUseCases::new(postgres_arc.clone());
 
-    let session_use_cases = SessionUseCases::new(postgres_arc.clone());
+    let google_meet = Arc::new(google_meet_service(Arc::clone(&config)));
+
+    let session_use_cases = SessionUseCases::new(postgres_arc.clone(), google_meet);
 
     let professional_use_cases = ProfessionalUseCases::new(postgres_arc.clone());
 

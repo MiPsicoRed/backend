@@ -6,6 +6,7 @@ pub struct AppConfig {
     pub resend_from_email: String,
     pub base_frontend_url: String,
     pub stripe_secret_key: String,
+    pub google_application_credentials: Option<String>,
     //pub access_token_ttl: Duration,
     //pub refresh_token_ttl: Duration,
 }
@@ -25,6 +26,8 @@ impl AppConfig {
         let stripe_secret_key =
             env::var("STRIPE_SECRET_KEY").expect("STRIPE_SECRET_KEY must be set");
 
+        let google_application_credentials = env::var("GOOGLE_APPLICATION_CREDENTIALS").ok();
+
         // let refresh_token_ttl_days: i64 = env::var("REFRESH_TOKEN_TTL_DAYS")
         //     .unwrap_or("30".to_string())
         //     .parse()
@@ -41,6 +44,7 @@ impl AppConfig {
             resend_from_email,
             base_frontend_url,
             stripe_secret_key,
+            google_application_credentials,
             //access_token_ttl: Duration::seconds(access_token_ttl_secs),
             //refresh_token_ttl: Duration::days(refresh_token_ttl_days),
         }

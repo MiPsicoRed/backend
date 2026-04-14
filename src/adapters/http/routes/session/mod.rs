@@ -47,6 +47,17 @@ struct SessionResponse {
 
 impl From<Session> for SessionResponse {
     fn from(session: Session) -> Self {
+        let mut videocall_url = session.videocall_url;
+        
+        let now = chrono::Utc::now().naive_utc();
+        let session_time = session.session_date.unwrap_or(now); 
+        // 15 minutes before
+        let gate_time = session_time - chrono::Duration::try_minutes(30).unwrap_or_default();
+        
+        if now < gate_time && !session.completed {
+             videocall_url = None;
+        }
+
         SessionResponse {
             id: session.id.unwrap(), // This should never panic as this should never be null when responding
             patient_id: session.patient_id,
@@ -54,7 +65,7 @@ impl From<Session> for SessionResponse {
             session_type_id: session.session_type_id,
             session_status_id: session.session_status.to_id(),
             session_date: session.session_date,
-            videocall_url: session.videocall_url,
+            videocall_url,
             notes: session.notes,
             completed: session.completed,
             session_duration: session.session_duration,

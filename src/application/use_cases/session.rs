@@ -23,19 +23,32 @@ pub trait SessionPersistence: Send + Sync {
     async fn delete(&self, id: &Uuid) -> AppResult<()>;
 }
 
+#[async_trait]
+pub trait VideocallProvider: Send + Sync {
+    async fn generate_videocall_url(&self, session: &Session) -> AppResult<String>;
+}
+
 #[derive(Clone)]
 pub struct SessionUseCases {
     persistence: Arc<dyn SessionPersistence>,
+    videocall_provider: Arc<dyn VideocallProvider>,
 }
 
 impl SessionUseCases {
-    pub fn new(persistence: Arc<dyn SessionPersistence>) -> Self {
-        Self { persistence }
+    pub fn new(persistence: Arc<dyn SessionPersistence>, videocall_provider: Arc<dyn VideocallProvider>) -> Self {
+        Self { persistence, videocall_provider }
     }
 
     #[instrument(skip(self))]
-    pub async fn create(&self, session: &Session) -> AppResult<()> {
+    pub async fn create(&self, session: &mut Session) -> AppResult<()> {
         info!("Attempting create session...");
+
+        // Generate the google meet link before persisting, if applicable
+        if let Ok(url) = self.videocall_provider.generate_videocall_url(session).await {
+            if !url.is_empty() {
+                session.videocall_url = Some(url);
+            }
+        }
 
         self.persistence.create(session).await?;
 
@@ -148,24 +161,35 @@ mod test {
         }
     }
 
+    struct MockVideocallProvider;
+
+    #[async_trait]
+    impl VideocallProvider for MockVideocallProvider {
+        async fn generate_videocall_url(&self, _session: &Session) -> AppResult<String> {
+            Ok("https://meet.google.com/test-link".to_string())
+        }
+    }
+
     #[tokio::test]
     async fn create_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
-        let result = use_cases
-            .create(&Session {
+        let mut session = Session {
                 id: None,
                 patient_id: Uuid::new_v4(),
                 professional_id: Uuid::new_v4(),
                 session_type_id: Some(Uuid::new_v4()),
                 session_status: SessionStatus::Scheduled,
                 session_date: None,
-                videocall_url: Some(String::from("https://videocallurl.com")),
+                videocall_url: None, // Starts as None, should be populated
                 notes: Some(String::from("")),
                 session_duration: Some(30),
                 completed: false,
                 created_at: None,
-            })
+        };
+
+        let result = use_cases
+            .create(&mut session)
             .await;
 
         assert!(result.is_ok());
@@ -173,22 +197,24 @@ mod test {
 
     #[tokio::test]
     async fn create_with_id_fails() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
-        let result = use_cases
-            .create(&Session {
+        let mut session = Session {
                 id: Some(Uuid::new_v4()),
                 patient_id: Uuid::new_v4(),
                 professional_id: Uuid::new_v4(),
                 session_type_id: Some(Uuid::new_v4()),
                 session_status: SessionStatus::Scheduled,
                 session_date: None,
-                videocall_url: Some(String::from("https://videocallurl.com")),
+                videocall_url: None,
                 notes: Some(String::from("")),
                 session_duration: Some(30),
                 completed: false,
                 created_at: None,
-            })
+        };
+
+        let result = use_cases
+            .create(&mut session)
             .await;
 
         assert!(result.is_err());
@@ -196,7 +222,7 @@ mod test {
 
     #[tokio::test]
     async fn read_all_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases.read_all().await;
 
@@ -205,7 +231,7 @@ mod test {
 
     #[tokio::test]
     async fn read_patient_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases.read_patient(&Uuid::new_v4()).await;
 
@@ -214,7 +240,7 @@ mod test {
 
     #[tokio::test]
     async fn read_professional_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases.read_professional(&Uuid::new_v4()).await;
 
@@ -223,7 +249,7 @@ mod test {
 
     #[tokio::test]
     async fn read_single_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases.read_single(&Uuid::new_v4()).await;
 
@@ -232,7 +258,7 @@ mod test {
 
     #[tokio::test]
     async fn update_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases
             .update(&Session {
@@ -255,7 +281,7 @@ mod test {
 
     #[tokio::test]
     async fn delete_works() {
-        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence));
+        let use_cases = SessionUseCases::new(Arc::new(MockSessionPersistence), Arc::new(MockVideocallProvider));
 
         let result = use_cases.delete(&Uuid::new_v4()).await;
 
