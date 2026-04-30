@@ -5,6 +5,7 @@ use crate::{
         crypto::{argon2::ArgonPasswordHasher, jwt::JwtService},
         email::email_service::EmailService,
         persistence::PostgresPersistence,
+        videocall::whereby::WherebyService,
     },
     infra::{config::AppConfig, db::init_db},
 };
@@ -39,4 +40,8 @@ pub fn email_service(config: Arc<AppConfig>) -> EmailService {
 
 pub fn stripe_gateway(config: Arc<AppConfig>) -> StripeGateway {
     StripeGateway::new(config)
+}
+
+pub fn videocall_service(config: Arc<AppConfig>) -> WherebyService {
+    WherebyService::new(config)
 }

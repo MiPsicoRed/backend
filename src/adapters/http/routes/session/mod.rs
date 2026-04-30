@@ -15,6 +15,7 @@ use crate::{
                 create::create_session, delete::delete_session, patient::read_patient_sessions,
                 professional::read_professional_sessions, read_all::read_all_sessions,
                 read_single::read_single_session, update::update_session,
+                videocall::get_videocall_url,
             },
             verified_middleware,
         },
@@ -29,6 +30,7 @@ pub mod professional;
 pub mod read_all;
 pub mod read_single;
 pub mod update;
+pub mod videocall;
 
 #[derive(Debug, Serialize, ToSchema)]
 struct SessionResponse {
@@ -95,6 +97,7 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_professional_or_admin()),
         )
+        .route("/{id}/videocall", get(get_videocall_url))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }
