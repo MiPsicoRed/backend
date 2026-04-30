@@ -67,7 +67,7 @@ pub async fn create_session(
     let session = Session { id: None, patient_id: patient_uuid, professional_id: professional_uuid, session_type_id: session_type_uuid, session_status: SessionStatus::from_id(payload.session_status_id.unwrap_or(1)).unwrap_or_default(), session_date: payload.session_date, videocall_url: payload.videocall_url, notes: payload.notes, completed: false, session_duration: payload.session_duration, created_at: None };
 
     use_cases
-        .create(&session)
+        .create(session)
         .await?;
 
     Ok((
