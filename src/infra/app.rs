@@ -24,8 +24,15 @@ pub fn create_app(app_state: AppState) -> Router {
             http::Method::POST,
             http::Method::GET,
             http::Method::PATCH,
+            http::Method::DELETE,
+            http::Method::OPTIONS,
         ])
-        .allow_headers([CONTENT_TYPE, AUTHORIZATION])
+        .allow_headers([
+            CONTENT_TYPE,
+            AUTHORIZATION,
+            http::header::ACCEPT,
+            http::header::ORIGIN,
+        ])
         .allow_credentials(true);
 
     let jwt_service_ext = app_state.user_use_cases.jwt_service.clone();
