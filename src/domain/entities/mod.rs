@@ -13,3 +13,5 @@ pub mod sexual_orientation;
 pub mod user;
 pub mod user_token;
 pub mod onboarding;
+pub mod mood_log;
+pub mod message;

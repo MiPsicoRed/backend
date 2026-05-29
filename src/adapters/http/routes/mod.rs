@@ -8,6 +8,8 @@ pub mod session_type;
 pub mod user;
 pub mod user_token;
 pub mod checkout;
+pub mod mood_log;
+pub mod message;
 
 use std::sync::Arc;
 
@@ -144,4 +146,6 @@ pub fn router() -> Router<AppState> {
             professional_specialization::router(),
         )
         .nest("/blog_post", blog_post::router())
+        .nest("/mood_log", mood_log::router())
+        .nest("/message", message::router())
 }

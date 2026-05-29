@@ -15,6 +15,8 @@ use crate::{
         user::{UserJwtService, UserUseCases},
         user_token::{UserTokenJwtService, UserTokenUseCases},
         payment::PaymentUseCases,
+        mood_log::MoodLogUseCases,
+        message::MessageUseCases,
     },
 };
 use std::fs::File;
@@ -63,6 +65,9 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
     let stripe_gateway = Arc::new(stripe_gateway(Arc::clone(&config)));
     let payment_use_cases = PaymentUseCases::new(postgres_arc.clone(), stripe_gateway);
 
+    let mood_log_use_cases = MoodLogUseCases::new(postgres_arc.clone());
+    let message_use_cases = MessageUseCases::new(postgres_arc.clone());
+
     Ok(AppState {
         config,
         user_use_cases: Arc::new(user_use_cases),
@@ -75,6 +80,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         professional_specializations_use_cases: Arc::new(professional_specializations_use_cases),
         blog_post_use_cases: Arc::new(blog_post_use_cases),
         payment_use_cases: Arc::new(payment_use_cases),
+        mood_log_use_cases: Arc::new(mood_log_use_cases),
+        message_use_cases: Arc::new(message_use_cases),
     })
 }
 
