@@ -12,14 +12,21 @@ use crate::{
 pub fn create_app(app_state: AppState) -> Router {
     init_tracing();
 
+    let frontend_url = app_state.config.base_frontend_url.trim_end_matches('/').to_string();
+    let mut origins = vec![
+        frontend_url.parse::<http::HeaderValue>().unwrap(),
+    ];
+    
+    // Also allow www variant if it's a production domain
+    if frontend_url.contains("mipsicored.com") && !frontend_url.contains("www.") {
+        let www_url = frontend_url.replace("https://", "https://www.");
+        if let Ok(val) = www_url.parse::<http::HeaderValue>() {
+            origins.push(val);
+        }
+    }
+
     let cors = CorsLayer::new()
-        .allow_origin(
-            app_state
-                .config
-                .base_frontend_url
-                .parse::<http::HeaderValue>()
-                .unwrap(),
-        )
+        .allow_origin(origins)
         .allow_methods([
             http::Method::POST,
             http::Method::GET,
@@ -32,6 +39,7 @@ pub fn create_app(app_state: AppState) -> Router {
             AUTHORIZATION,
             http::header::ACCEPT,
             http::header::ORIGIN,
+            http::HeaderName::from_static("x-requested-with"),
         ])
         .allow_credentials(true);
 

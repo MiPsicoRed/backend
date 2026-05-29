@@ -12,6 +12,7 @@ use crate::{
         professional_language::ProfessionalLanguageUseCases,
         professional_specialization::ProfessionalSpecializationUseCases, session::SessionUseCases,
         session_type::SessionTypeUseCases, user::UserUseCases, user_token::UserTokenUseCases,
+        mood_log::MoodLogUseCases, message::MessageUseCases,
     },
 };
 
@@ -28,6 +29,8 @@ pub struct AppState {
     pub professional_specializations_use_cases: Arc<ProfessionalSpecializationUseCases>,
     pub blog_post_use_cases: Arc<BlogPostUseCases>,
     pub payment_use_cases: Arc<PaymentUseCases>,
+    pub mood_log_use_cases: Arc<MoodLogUseCases>,
+    pub message_use_cases: Arc<MessageUseCases>,
 }
 
 impl FromRef<AppState> for Arc<UserUseCases> {
@@ -91,3 +94,14 @@ impl FromRef<AppState> for Arc<PaymentUseCases> {
     }
 }
 
+impl FromRef<AppState> for Arc<MoodLogUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.mood_log_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<MessageUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.message_use_cases.clone()
+    }
+}

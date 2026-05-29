@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT id, patient_id, mood_score, note, shared_with_professional, created_at\n                FROM mood_logs\n                WHERE patient_id = $1\n                ORDER BY created_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "patient_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "mood_score",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "note",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "shared_with_professional",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "a35e391fca7249f418c0d8ecd61e8a05c21c02b4977f6af2b60ac787c374bfc6"
+}
