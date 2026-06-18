@@ -12,3 +12,4 @@ pub mod user_token;
 pub mod payment;
 pub mod mood_log;
 pub mod message;
+pub mod notification;

@@ -17,6 +17,7 @@ use crate::{
         payment::PaymentUseCases,
         mood_log::MoodLogUseCases,
         message::MessageUseCases,
+        notification::NotificationUseCases,
     },
 };
 use std::fs::File;
@@ -67,6 +68,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
 
     let mood_log_use_cases = MoodLogUseCases::new(postgres_arc.clone());
     let message_use_cases = MessageUseCases::new(postgres_arc.clone());
+    let notification_use_cases = NotificationUseCases::new(postgres_arc.clone());
+    let websocket_manager = crate::infra::websocket::WebSocketManager::new();
 
     Ok(AppState {
         config,
@@ -82,6 +85,8 @@ pub async fn init_app_state() -> anyhow::Result<AppState> {
         payment_use_cases: Arc::new(payment_use_cases),
         mood_log_use_cases: Arc::new(mood_log_use_cases),
         message_use_cases: Arc::new(message_use_cases),
+        notification_use_cases: Arc::new(notification_use_cases),
+        websocket_manager: Arc::new(websocket_manager),
     })
 }
 

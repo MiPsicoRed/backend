@@ -15,3 +15,4 @@ pub mod user_token;
 pub mod onboarding;
 pub mod mood_log;
 pub mod message;
+pub mod notification;

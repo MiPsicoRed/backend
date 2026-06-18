@@ -31,6 +31,26 @@ pub async fn send_message(
     };
 
     state.message_use_cases.create(&message).await?;
+    
+    // Create Notification
+    let notification = crate::entities::notification::Notification {
+        id: Uuid::new_v4(),
+        user_id: payload.receiver_id,
+        r#type: "info".to_string(),
+        title: "Nuevo Mensaje".to_string(),
+        message: "Tienes un nuevo mensaje pendiente de leer.".to_string(),
+        is_read: false,
+        created_at: None,
+    };
+    if let Err(e) = state.notification_use_cases.create(&notification).await {
+        tracing::error!("Failed to create notification: {:?}", e);
+    } else {
+        // Send via WebSocket if connected
+        if let Ok(notif_json) = serde_json::to_string(&notification) {
+            state.websocket_manager.send_message(payload.receiver_id, notif_json).await;
+        }
+    }
+
     Ok(Json(message))
 }
 

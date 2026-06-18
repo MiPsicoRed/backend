@@ -31,6 +31,8 @@ pub struct AppState {
     pub payment_use_cases: Arc<PaymentUseCases>,
     pub mood_log_use_cases: Arc<MoodLogUseCases>,
     pub message_use_cases: Arc<MessageUseCases>,
+    pub notification_use_cases: Arc<crate::use_cases::notification::NotificationUseCases>,
+    pub websocket_manager: Arc<crate::infra::websocket::WebSocketManager>,
 }
 
 impl FromRef<AppState> for Arc<UserUseCases> {
@@ -103,5 +105,17 @@ impl FromRef<AppState> for Arc<MoodLogUseCases> {
 impl FromRef<AppState> for Arc<MessageUseCases> {
     fn from_ref(app_state: &AppState) -> Self {
         app_state.message_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<crate::use_cases::notification::NotificationUseCases> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.notification_use_cases.clone()
+    }
+}
+
+impl FromRef<AppState> for Arc<crate::infra::websocket::WebSocketManager> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.websocket_manager.clone()
     }
 }

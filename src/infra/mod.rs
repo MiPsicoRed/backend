@@ -16,6 +16,7 @@ pub mod config;
 pub mod db;
 pub mod setup;
 pub mod payment;
+pub mod websocket;
 
 use self::payment::stripe_gateway::StripeGateway;
 
