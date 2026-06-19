@@ -66,7 +66,11 @@ impl From<Professional> for ProfessionalResponse {
 }
 
 pub fn router() -> Router<AppState> {
-    Router::new()
+    let public_routes = Router::new()
+        .route("/all", get(read_all_professionals))
+        .route("/selector", get(professionals_selector));
+
+    let protected_routes = Router::new()
         .route(
             "/create", // Required: Verified Email + Admin/Professional Role
             post(create_professional)
@@ -79,10 +83,6 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_admin()),
         )
-        .route(
-            "/all", // Required: Verified Email
-            get(read_all_professionals)
-        )
         .route("/single", get(read_single_professional)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
         .route("/user", get(read_professional_by_user)) // Required: Verified Email + Admin Role or Professional Role + requesting user_id
         .route(
@@ -91,7 +91,8 @@ pub fn router() -> Router<AppState> {
                 .route_layer(middleware::from_fn(require_role_middleware))
                 .route_layer(require_professional_or_admin()),
         )
-        .route("/selector", get(professionals_selector))
         .layer(middleware::from_fn(verified_middleware))
-        .layer(middleware::from_fn(auth_middleware))
+        .layer(middleware::from_fn(auth_middleware));
+
+    public_routes.merge(protected_routes)
 }

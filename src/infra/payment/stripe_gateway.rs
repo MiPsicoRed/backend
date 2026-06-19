@@ -83,5 +83,33 @@ impl PaymentGateway for StripeGateway {
 
         Ok((client_secret, id))
     }
+
+    async fn get_checkout_session_status(
+        &self,
+        session_id: &str,
+    ) -> AppResult<crate::application::use_cases::payment::CheckoutSessionStatus> {
+        let checkout_session_id: stripe::CheckoutSessionId = session_id
+            .parse()
+            .map_err(|e| {
+                error!("Invalid Stripe checkout session id {}: {:?}", session_id, e);
+                AppError::Internal("Invalid checkout session id".into())
+            })?;
+
+        let session = CheckoutSession::retrieve(&self.client, &checkout_session_id, &[])
+            .await
+            .map_err(|e| {
+                error!("Stripe retrieve session error: {:?}", e);
+                AppError::ExternalServiceError(format!("Stripe error: {}", e))
+            })?;
+
+        let payment_status = session.payment_status.to_string();
+
+        let payment_intent_id = session.payment_intent.as_ref().map(|pi| pi.id().to_string());
+
+        Ok(crate::application::use_cases::payment::CheckoutSessionStatus {
+            payment_status,
+            payment_intent_id,
+        })
+    }
 }
 

@@ -24,6 +24,7 @@ impl IntoResponse for AppError {
             }
             AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg).into_response(),
             AppError::ExternalServiceError(msg) => (StatusCode::BAD_GATEWAY, msg).into_response(),
+            AppError::PaymentNotApproved(msg) => (StatusCode::PAYMENT_REQUIRED, msg).into_response(),
             AppError::Unauthorized(_) => (StatusCode::UNAUTHORIZED, "Unauthorized").into_response(),
         }
     }
