@@ -37,7 +37,7 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/", get(get_my_notifications))
         .route("/read-all", patch(mark_all_as_read))
-        .route("/:id/read", patch(mark_as_read))
+        .route("/{id}/read", patch(mark_as_read))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }

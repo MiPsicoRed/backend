@@ -67,7 +67,7 @@ pub async fn get_conversation(
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/send", post(send_message))
-        .route("/conversation/:other_user_id", get(get_conversation))
+        .route("/conversation/{other_user_id}", get(get_conversation))
         .layer(middleware::from_fn(verified_middleware))
         .layer(middleware::from_fn(auth_middleware))
 }

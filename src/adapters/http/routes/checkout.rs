@@ -19,18 +19,19 @@ pub struct CreateCheckoutSessionRequest {
 #[derive(Serialize)]
 pub struct CreateCheckoutSessionResponse {
     pub client_secret: String,
+    pub session_id: String,
 }
 
 pub async fn create_checkout_session(
     State(payment_use_cases): State<Arc<PaymentUseCases>>,
     Json(payload): Json<CreateCheckoutSessionRequest>,
 ) -> AppResult<impl IntoResponse> {
-    let client_secret = payment_use_cases.create_checkout_session(
+    let (client_secret, session_id) = payment_use_cases.create_checkout_session(
         payload.amount,
         payload.currency,
         payload.success_url,
         payload.cancel_url,
     ).await?;
 
-    Ok((StatusCode::OK, Json(CreateCheckoutSessionResponse { client_secret })))
+    Ok((StatusCode::OK, Json(CreateCheckoutSessionResponse { client_secret, session_id })))
 }

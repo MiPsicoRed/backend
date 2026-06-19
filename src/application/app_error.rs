@@ -11,6 +11,9 @@ pub enum AppError {
     #[error("Invalid payload")]
     InvalidPayload,
 
+    #[error("Payment not approved: {0}")]
+    PaymentNotApproved(String),
+
     #[error("Unauthorized: {0}")]
     Unauthorized(String),
 

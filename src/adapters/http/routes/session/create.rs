@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::Validateable, app_error::{AppError, AppResult}, entities:: session::{Session, SessionStatus}, use_cases::session::SessionUseCases
+    adapters::http::routes::Validateable, app_error::{AppError, AppResult}, entities:: session::{Session, SessionStatus}, use_cases::{payment::PaymentUseCases, session::SessionUseCases}
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
@@ -20,11 +20,14 @@ pub struct SessionCreatePayload {
     videocall_url: Option<String>,
     notes: Option<String>,
     session_duration: Option<i32>,
+    payment_session_id: Option<String>,
 }
 
 impl Validateable for SessionCreatePayload {
     fn valid(&self) -> bool {
-        !self.patient_id.is_empty() && !self.professional_id.is_empty()
+        !self.patient_id.is_empty()
+            && !self.professional_id.is_empty()
+            && self.payment_session_id.as_ref().map(|s| !s.is_empty()).unwrap_or(false)
     }
 }
 
@@ -46,9 +49,10 @@ pub struct SessionCreateResponse {
     summary = "Creates a new session",
     description = "\n\n**Required:** Verified Email + Admin/Professional Role"
 )]
-#[instrument(skip(use_cases))]
+#[instrument(skip(use_cases, payment_use_cases))]
 pub async fn create_session(
     State(use_cases): State<Arc<SessionUseCases>>,
+    State(payment_use_cases): State<Arc<PaymentUseCases>>,
     Json(payload): Json<SessionCreatePayload>,
 ) -> AppResult<impl IntoResponse> {
     info!("Create session called");
@@ -56,6 +60,12 @@ pub async fn create_session(
     if !payload.valid() {
         return AppResult::Err(AppError::InvalidPayload);
     }
+
+    let payment_session_id = payload.payment_session_id.as_deref().ok_or_else(|| {
+        AppError::PaymentNotApproved("payment_session_id is required to create a session".into())
+    })?;
+
+    payment_use_cases.verify_payment_completed(payment_session_id).await?;
 
     // Make sure the uuids are valid
     let patient_uuid = Uuid::parse_str(&payload.patient_id).map_err(|_| AppError::Internal("Invalid UUID string".into()))?;
