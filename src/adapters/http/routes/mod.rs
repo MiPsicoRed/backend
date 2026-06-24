@@ -11,7 +11,6 @@ pub mod checkout;
 pub mod mood_log;
 pub mod message;
 pub mod notification;
-pub mod ws;
 
 use std::sync::Arc;
 
@@ -151,5 +150,4 @@ pub fn router() -> Router<AppState> {
         .nest("/mood_log", mood_log::router())
         .nest("/message", message::router())
         .nest("/notification", notification::router())
-        .nest("/ws", ws::router())
 }

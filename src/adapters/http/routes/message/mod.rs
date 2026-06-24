@@ -44,11 +44,6 @@ pub async fn send_message(
     };
     if let Err(e) = state.notification_use_cases.create(&notification).await {
         tracing::error!("Failed to create notification: {:?}", e);
-    } else {
-        // Send via WebSocket if connected
-        if let Ok(notif_json) = serde_json::to_string(&notification) {
-            state.websocket_manager.send_message(payload.receiver_id, notif_json).await;
-        }
     }
 
     Ok(Json(message))

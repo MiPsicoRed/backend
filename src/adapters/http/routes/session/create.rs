@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
-    adapters::http::routes::Validateable, app_error::{AppError, AppResult}, entities:: session::{Session, SessionStatus}, use_cases::{payment::PaymentUseCases, session::SessionUseCases}
+    adapters::http::routes::Validateable, app_error::{AppError, AppResult}, entities::session::{Session, SessionStatus}, use_cases::{payment::PaymentUseCases, session::SessionUseCases}
 };
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
